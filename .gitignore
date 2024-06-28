@@ -60,6 +60,7 @@ _deps
 ### Ignore data upload
 **/*.bin
 data/
+build/
 
 # End of https://www.toptal.com/developers/gitignore/api/cmake
 n
