@@ -1,0 +1,5 @@
+add_library(dataloader STATIC)
+target_sources(dataloader PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/dataloader.cpp)
+target_compile_features(dataloader PUBLIC cxx_std_17)
+target_include_directories(dataloader PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/..>)
+target_link_libraries(dataloader PUBLIC Eigen3::Eigen)
