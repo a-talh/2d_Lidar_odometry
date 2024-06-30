@@ -1,4 +1,5 @@
 #include "viewer.hpp"
+#include "../dataloader/dataloader.hpp"
 #include <algorithm>
 #include <iostream>
 #include <open3d/Open3D.h>
@@ -15,16 +16,26 @@ namespace
         return mean / vec.size();
     }
 
-    Eigen::Matrix2d compute_covariance(const std::vector<Eigen::Vector2d> &vec1, const std::vector<Eigen::Vector2d> &vec2, const Eigen::Vector2d &mean1, const Eigen::Vector2d &mean2)
+    Eigen::Matrix2d compute_covariance(const std::vector<Eigen::Vector2d> &src, const std::vector<Eigen::Vector2d> &target, const Eigen::Vector2d &mean1, const Eigen::Vector2d &mean2)
     {
         Eigen::Matrix2d cov = Eigen::Matrix2d::Zero();
 
-        for (size_t i = 0; i < vec1.size(); i++)
+        for (size_t i = 0; i < src.size(); i++)
         {
-            cov += (vec2[i] - mean2) * (vec1[i] - mean1).transpose();
+            cov += (target[i] - mean2) * (src[i] - mean1).transpose();
         };
 
         return cov;
+    }
+
+    double error(const std::vector<Eigen::Vector2d> &src, const std::vector<Eigen::Vector2d> &target, const Eigen::Matrix2d &R, const Eigen::Vector2d &t)
+    {
+        double error = 0.0;
+        for (size_t i = 0; i < src.size(); i++)
+        {
+            error += (R * src[i] + t - target[i]).norm();
+        }
+        return error;
     }
 }
 
@@ -48,15 +59,16 @@ void viewCloud(std::vector<Eigen::Vector2d> &first, const std::vector<Eigen::Vec
 }
 
 
-void implement_icp(std::vector<Eigen::Vector2d> &src, const std::vector<Eigen::Vector2d> &target)
+std::pair<Eigen::Matrix2d, Eigen::Vector2d> implement_icp(std::vector<Eigen::Vector2d> &src, const std::vector<Eigen::Vector2d> &target)
 {   
-    std::cout << "Implementing ICP" << std::endl;
     Eigen::Vector2d x0 = Eigen::Vector2d::Zero();
     Eigen::Vector2d y0 = Eigen::Vector2d::Zero();
     Eigen::Matrix2d H = Eigen::Matrix2d::Zero();
-
-    for (int i  = 0; i <= 5; i++)
-    {
+    Eigen::Matrix2d R = Eigen::Matrix2d::Identity();
+    Eigen::Vector2d t = Eigen::Vector2d::Zero();
+    int count = 1;
+    while (true)
+     {
         Eigen::Vector2d x0 = compute_mean(src);
         Eigen::Vector2d y0 = compute_mean(target);
         Eigen::Matrix2d H = compute_covariance(src, target, x0, y0);
@@ -69,8 +81,20 @@ void implement_icp(std::vector<Eigen::Vector2d> &src, const std::vector<Eigen::V
         Eigen::Vector2d t = y0 - R * x0;
 
         std::for_each(src.begin(), src.end(), [R, t](Eigen::Vector2d &point) { point = R * point + t;});
-        
-    }
 
-  viewCloud(src, target);
+        count++;
+
+        if (error(src, target, R, t) <  0.0001 || count > 1000)
+        {   
+            break;
+        }
+    }
+    return std::make_pair(R, t);
+}
+
+std::vector<Eigen::Vector2d> apply_transformation(const std::pair <Eigen::Matrix2d, Eigen::Vector2d> &transformation, const std::vector<Eigen::Vector2d> &src){
+    std::vector<Eigen::Vector2d> transformed(src.size());
+    // std::for_each(src.begin(), src.end(), [transformation, transformed](Eigen::Vector2d &point) { point = transformation.first * point + transformation.second; });
+    transformed = src;
+    return transformed;
 }

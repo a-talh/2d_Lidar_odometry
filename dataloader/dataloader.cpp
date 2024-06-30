@@ -58,4 +58,27 @@ LaserScanDataset::LaserScanDataset(const std::string &data_root_dir) {
 LaserScanDataset::PointCloud LaserScanDataset::operator[](int idx) const {
   return ReadLaserScan(laser_scan_files_[idx]);
 }
+
+void LaserScanDataset::SetRegisteredPointCloud(const LaserScanDataset::PointCloud &pointcloud) {
+  registered_pointcloud_ = pointcloud;
+}
+
+void LaserScanDataset::AddRegisteredPointCloud(const LaserScanDataset::PointCloud &pointcloud) {
+  registered_pointcloud_.insert(registered_pointcloud_.end(), pointcloud.begin(), pointcloud.end());
+}
+
+LaserScanDataset::PointCloud LaserScanDataset::GetRegisteredPointCloud() const{ 
+  return registered_pointcloud_; 
+  }
+
+void LaserScanDataset::SetTransformation(std::pair<Eigen::Matrix2d, Eigen::Vector2d> &transformation) {
+  R_.push_back(transformation.first);
+  t_.push_back(transformation.second);
+}
+
+std::pair<Eigen::Matrix2d, Eigen::Vector2d> LaserScanDataset::GetTransformation(int idx) const {
+
+  return std::make_pair(R_[idx],t_[idx]);
+}
+
 } // namespace dataset
