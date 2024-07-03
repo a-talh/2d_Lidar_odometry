@@ -6,4 +6,4 @@ target_link_libraries(dataloader PUBLIC Eigen3::Eigen)
 
 
 target_include_directories(dataloader PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_compile_features(dataloader PRIVATE cxx_std_17)
+target_compile_features(dataloader PRIVATE cxx_std_20)
