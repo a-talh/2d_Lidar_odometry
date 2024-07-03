@@ -65,6 +65,6 @@ open3d/
 .vscode/
 extra.txt
 annoy/
-.gitignore
+
 # End of https://www.toptal.com/developers/gitignore/api/cmake
 n

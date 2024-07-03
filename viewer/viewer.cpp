@@ -72,70 +72,56 @@ std::pair<Eigen::Matrix2d, Eigen::Vector2d> icp_known_correspondence(std::vector
     Eigen::Matrix2d H = Eigen::Matrix2d::Zero();
     Eigen::Matrix2d R = Eigen::Matrix2d::Identity();
     Eigen::Vector2d t = Eigen::Vector2d::Zero();
-    Eigen::Matrix2d R_ = Eigen::Matrix2d::Identity();
-    Eigen::Vector2d t_ = Eigen::Vector2d::Zero();
-    int count = 1;
-    while (true)
-     {
-        Eigen::Vector2d x0 = compute_mean(src);
-        Eigen::Vector2d y0 = compute_mean(target);
-        Eigen::Matrix2d H = compute_covariance(src, target, x0, y0);
+
+    x0 = compute_mean(src);
+    y0 = compute_mean(target);
+    H = compute_covariance(src, target, x0, y0);
         
-        Eigen::JacobiSVD<Eigen::Matrix2d> svd(H, Eigen::ComputeFullU | Eigen::ComputeFullV);
-        Eigen::Matrix2d U = svd.matrixU();
-        Eigen::Matrix2d V = svd.matrixV();
+    Eigen::JacobiSVD<Eigen::Matrix2d> svd(H, Eigen::ComputeFullU | Eigen::ComputeFullV);
+    Eigen::Matrix2d U = svd.matrixU();
+    Eigen::Matrix2d V = svd.matrixV();
 
-        Eigen::Matrix2d R = U * V.transpose();
-        Eigen::Vector2d t = y0 - R * x0;
+    R = U * V.transpose();
+    t = y0 - R * x0;
 
-        R_ = R * R_;
-        t_ = t_ + t;
-
-        count++;
-
-        if (error(src, target, R_, t_) <  70 || count == 2)
-        {   
-            // std::cout<<"Count: "<<count<<std::endl;
-            break;
-        }
-    }
-    return std::make_pair(R_, t_);
+    return std::make_pair(R, t);
 }
 
-// std::pair<Eigen::Matrix2d, Eigen::Vector2d> icp_unknown_correspondence(std::vector<Eigen::Vector2d> &src, const std::vector<Eigen::Vector2d> &target){
-// int max_iterations = 1000;
-// double max_err = 1e-5;
+std::pair<Eigen::Matrix2d, Eigen::Vector2d> icp_unknown_correspondence(std::vector<Eigen::Vector2d> &src, const std::vector<Eigen::Vector2d> &target){
+int max_iterations = 10;
+double err = 0.0;
+double max_err = 1e-5;
+double old_err = 0.0;
+dataset::LaserScanDataset::PointCloud sampled_src;
+dataset::LaserScanDataset::PointCloud correspondences;
+    while(true){
+        // Sample the source point cloud
+        sampled_src = sample_points(src, 300);
 
+        // Find nearest neighbors using Annoy
+        correspondences = find_nearest_neighbours(sampled_src, target);
 
-// // neighbour = NearestNeighbors(n_neighbors=1).fit(Line1.T)
-// //     for i in range(MaxIter):
+        // Perform ICP with known correspondences
+        std::pair<Eigen::Matrix2d, Eigen::Vector2d> transformation = icp_known_correspondence(sampled_src, correspondences);
 
-// //         # find correspondences of points
-// //         QInd = np.array([i[0] for i in neighbour.kneighbors(Line2.T, return_distance=False)]) 
-// //         PInd = np.arange(Line2.shape[1])
+        // Compute the error
+        err = error(src, target, transformation.first, transformation.second);
 
-// //         # update Line2 and error
-// //         # Now that you know the correspondences, use your implementation
-// //         # of icp with known correspondences and perform an update
-// //         EOld = E
-// //         [Line2, E] = icp_known_corresp(Line1, Line2, QInd, PInd)
+        if (err <= max_err || err == old_err || max_iterations == 0) {
+            return transformation;
+        }
 
-// //         print('Error value on ' + str(i) + ' iteration is: ', E)
-
-// //         # TODO: perform the check if we need to stop iterating
-// //         if E - EOld == 0 or E < Epsilon:
-// //             break
+        old_err = err;
+        max_iterations--;
         
-// //     # return the final error 
-// //     return E
+    }
 
-// }
+}
 
 
 std::vector<Eigen::Vector2d> apply_transformation(const std::pair <Eigen::Matrix2d, Eigen::Vector2d> &transformation, const std::vector<Eigen::Vector2d> &src){
-    std::vector<Eigen::Vector2d> transformed(src.size());
-    // std::for_each(src.begin(), src.end(), [transformation, transformed](Eigen::Vector2d &point) { point = transformation.first * point + transformation.second; });
-    transformed = src;
+    std::vector<Eigen::Vector2d> transformed = src;
+    std::for_each(transformed.begin(), transformed.end(), [transformation](Eigen::Vector2d &point) { point = transformation.first * point + transformation.second; });
     return transformed;
 }
 
@@ -163,4 +149,11 @@ std::vector<Eigen::Vector2d> find_nearest_neighbours(const std::vector<Eigen::Ve
     for (int idx : indices) { nearest_neighbours.push_back(target[idx]); }
     
     return nearest_neighbours;
+}
+
+std::vector<Eigen::Vector2d> concat_pointclouds(const std::vector<Eigen::Vector2d> &first, const std::vector<Eigen::Vector2d> &second)
+{
+    std::vector<Eigen::Vector2d> result = first;
+    result.insert(result.end(), second.begin(), second.end());
+    return result;
 }
