@@ -6,9 +6,13 @@ int main() {
     std::string data_root = "data/";
     std::cout<<"Loading data"<< std::endl;
     dataset::LaserScanDataset laser_data(data_root);
+
     int num_scans = laser_data.size();
-    int iters = 150;
-    std::pair<Eigen::Matrix2d, Eigen::Vector2d> transformation;
+    std::cout<<"Available time "<<(num_scans*0.1)/60<<" minutes"<<std::endl;
+
+    // int iters = num_scans - 1;
+    int iters = 50;
+    Eigen::Matrix3d T;
     dataset::LaserScanDataset::PointCloud src;
     dataset::LaserScanDataset::PointCloud target;
     dataset::LaserScanDataset::PointCloud transformed_pc;
@@ -20,8 +24,8 @@ int main() {
         src = laser_data[i];
         target = laser_data[i+1];
         std::cout<<i<<std::endl;
-        transformation = icp_unknown_correspondence(src, target);
-        laser_data.SetTransformation(transformation);
+        T = icp_unknown_correspondence(src, target);
+        laser_data.SetTransformation(T);
 
     }
 
@@ -32,8 +36,8 @@ int main() {
         if (i == 0)
         {
             transformed_pc = laser_data[i];
-            transformation = laser_data.GetTransformation(i);
-            result = apply_transformation(transformation, transformed_pc);
+            T = laser_data.GetTransformation(i);
+            result = apply_transformation(T, transformed_pc);
             target = laser_data[i+1];
             result = concat_pointclouds(result, target);
             laser_data.SetRegisteredPointCloud(result);
@@ -41,12 +45,13 @@ int main() {
         }
 
         transformed_pc = laser_data.GetRegisteredPointCloud();
-        transformation = laser_data.GetTransformation(i);
-        result = apply_transformation(transformation, transformed_pc);
+        T = laser_data.GetTransformation(i);
+        result = apply_transformation(T, transformed_pc);
         target = laser_data[i+1];
         result = concat_pointclouds(result, target);
         laser_data.SetRegisteredPointCloud(result);
     }
+
 
     // Visualize the point clouds
     result = laser_data.GetRegisteredPointCloud();
@@ -54,4 +59,5 @@ int main() {
     viewCloud(result);
     return 0;
 }
+
 
