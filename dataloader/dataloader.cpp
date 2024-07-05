@@ -60,6 +60,8 @@ LaserScanDataset::PointCloud LaserScanDataset::operator[](int idx) const {
 }
 
 void LaserScanDataset::SetRegisteredPointCloud(const LaserScanDataset::PointCloud &pointcloud) {
+  registered_pointcloud_.clear();
+  registered_pointcloud_.reserve(7052531);
   registered_pointcloud_ = pointcloud;
 }
 

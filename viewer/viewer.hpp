@@ -16,4 +16,4 @@ std::vector<Eigen::Vector2d> apply_transformation(const Eigen::Matrix3d &transfo
 
 std::vector<Eigen::Vector2d> sample_points(const std::vector<Eigen::Vector2d> &src, int num_samples);
 
-std::vector<Eigen::Vector2d> concat_pointclouds(const std::vector<Eigen::Vector2d> &first, const std::vector<Eigen::Vector2d> &second);
+std::vector<Eigen::Vector2d> concat_pointclouds(std::vector<Eigen::Vector2d> &first, const std::vector<Eigen::Vector2d> &second);

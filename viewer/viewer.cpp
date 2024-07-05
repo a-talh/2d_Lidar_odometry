@@ -32,14 +32,23 @@ namespace
         return cov;
     }
 
-    double error(const std::vector<Eigen::Vector2d> &src, const std::vector<Eigen::Vector2d> &target)
+    double error(std::vector<Eigen::Vector2d> &src, const std::vector<Eigen::Vector2d> &target, const Eigen::Matrix3d &transformation)
     {
+        // std::vector<Eigen::Vector2d> transformed_points;
         double error = 0.0;
+        Eigen::Matrix2d R = transformation.block<2, 2>(0, 0);
+        Eigen::Vector2d t = transformation.block<2, 1>(0, 2);
 
         for (size_t i = 0; i < src.size(); i++)
         {
-            error += (target[i] - src[i]).squaredNorm();
+            src[i] = (R * src[i] + t);
+            error  += (target[i] - src[i]).squaredNorm();
+
         }
+        // for (size_t i = 0; i < src.size(); i++)
+        // {
+        //     error += (target[i] - src[i]).squaredNorm();
+        // }
         return error;
     }
 }
@@ -88,8 +97,7 @@ Eigen::Matrix3d icp_unknown_correspondence(std::vector<Eigen::Vector2d> &src, co
 
     int max_iterations = 50;
     int iter = 0;
-    double err = INFINITY;
-    double max_err = 10;
+    double max_err = 0.1;
     double old_err =  INFINITY;
     double best_err = INFINITY;
 
@@ -131,11 +139,11 @@ Eigen::Matrix3d icp_unknown_correspondence(std::vector<Eigen::Vector2d> &src, co
             // Save the transformation
             T = t * T;
 
-            src = apply_transformation(t, src);
+            // src = apply_transformation(t, src);
 
             // Compute the error
             double err = INFINITY;
-            err = error(src, target);
+            err = error(src, target, t);
 
             // std::cout << "Error: " << err << std::endl;
 
@@ -144,11 +152,11 @@ Eigen::Matrix3d icp_unknown_correspondence(std::vector<Eigen::Vector2d> &src, co
             //     t_b = T;
             // }
             // std::cout << "Transformation: \n" << T << std::endl;
-            if (err <= max_err || iter == max_iterations || err == old_err) {
-                if (iter == max_iterations) {
+            if (err <= max_err || iter == max_iterations) {
+                // if (iter == max_iterations) {
                     // std::cout << "Max iterations reached " << std::endl;
-                    T = t_b;
-                }
+                    // T = t_b;
+                // }
                 // if (err == old_err) {std::cout << "Converged " << std::endl;}
                 // if (err <= max_err) {std::cout << "Error threshold reached "<< std::endl;}
                 // std::cout << "Final error: " << err << std::endl;
@@ -183,7 +191,7 @@ std::vector<Eigen::Vector2d> sample_points(const std::vector<Eigen::Vector2d> &v
 }
 
 
-std::vector<Eigen::Vector2d> concat_pointclouds(const std::vector<Eigen::Vector2d> &first, const std::vector<Eigen::Vector2d> &second)
+std::vector<Eigen::Vector2d> concat_pointclouds(std::vector<Eigen::Vector2d> &first, const std::vector<Eigen::Vector2d> &second)
 {
     std::vector<Eigen::Vector2d> result = first;
     result.insert(result.end(), second.begin(), second.end());

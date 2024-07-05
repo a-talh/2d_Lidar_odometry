@@ -1,6 +1,8 @@
 #include <iostream>
 #include "dataloader.hpp"
 #include "viewer.hpp"
+#include <ctime>
+#include <iomanip>
 
 int main() {
     std::string data_root = "data/";
@@ -9,10 +11,13 @@ int main() {
 
     int num_scans = laser_data.size();
     std::cout<<"Available time "<<(num_scans*0.1)/60<<" minutes"<<std::endl;
+    // std::time_t currentTime = std::time(nullptr);
+    // std::tm* localTime = std::localtime(&currentTime);
+    // std::cout<<"Start time: "<<std::put_time(localTime, "%Y-%m-%d %H:%M:%S")<<std::endl;
 
     // int iters = num_scans - 1;
     int iters = 50;
-    Eigen::Matrix3d T;
+    dataset::LaserScanDataset::Transformation T;
     dataset::LaserScanDataset::PointCloud src;
     dataset::LaserScanDataset::PointCloud target;
     dataset::LaserScanDataset::PointCloud transformed_pc;
@@ -38,6 +43,7 @@ int main() {
             transformed_pc = laser_data[i];
             T = laser_data.GetTransformation(i);
             result = apply_transformation(T, transformed_pc);
+            result = sample_points(result, result.size()/2);
             target = laser_data[i+1];
             result = concat_pointclouds(result, target);
             laser_data.SetRegisteredPointCloud(result);
@@ -47,12 +53,13 @@ int main() {
         transformed_pc = laser_data.GetRegisteredPointCloud();
         T = laser_data.GetTransformation(i);
         result = apply_transformation(T, transformed_pc);
+        result = sample_points(result, result.size()/2);
         target = laser_data[i+1];
         result = concat_pointclouds(result, target);
         laser_data.SetRegisteredPointCloud(result);
     }
 
-
+    
     // Visualize the point clouds
     result = laser_data.GetRegisteredPointCloud();
     std::cout<<"Number of points in the registered point cloud: "<<result.size()<<std::endl;

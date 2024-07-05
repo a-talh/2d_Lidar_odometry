@@ -9,6 +9,7 @@ namespace dataset {
 class LaserScanDataset {
 public:
   using PointCloud = std::vector<Eigen::Vector2d>;
+  using Transformation = Eigen::Matrix3d;
 
   LaserScanDataset(const std::string &data_root_dir);
   std::size_t size() const { return laser_scan_files_.size(); }
