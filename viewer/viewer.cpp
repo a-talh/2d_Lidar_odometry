@@ -49,6 +49,28 @@ namespace
         // }
         return error;
     }
+
+    std::vector<Pixel> neighbour_pixels(const Pixel &p)
+    {
+        return {Pixel(p.i - 1, p.j - 1), Pixel(p.i - 1, p.j), Pixel(p.i - 1, p.j + 1),
+                Pixel(p.i, p.j - 1), p , Pixel(p.i, p.j + 1),
+                Pixel(p.i + 1, p.j - 1), Pixel(p.i + 1, p.j), Pixel(p.i + 1, p.j + 1)};
+    }
+
+    std::vector<Eigen::Vector2d> pixel_points(std::vector<Pixel> &pixels, const std::unordered_map<Pixel, std::vector<Eigen::Vector2d>> &target_grid)
+    {
+        std::vector<Eigen::Vector2d> points;
+        for (const auto &pixel : pixels)
+        {
+            const auto it = target_grid.find(pixel);
+            if (it != target_grid.end())
+            {
+                points.insert(points.end(), it->second.begin(), it->second.end());
+            }
+        }
+        return points;
+    }
+
 }
 
 void viewCloud(const std::vector<Eigen::Vector2d> &pcd) {
@@ -106,47 +128,84 @@ std::unordered_map<Pixel, std::vector<Eigen::Vector2d>> grid_map(const std::vect
         grid[p].emplace_back(point);
     }
     return grid;
-
-
-Eigen::Matrix3d icp_unknown_correspondence(std::vector<Eigen::Vector2d> &src, const std::vector<Eigen::Vector2d> &target){
-
-    int max_iterations = 5;
-    int iter = 0;
-    double max_err = 0.1;
-    double old_err =  INFINITY;
-
-    std::vector<Eigen::Vector2d> correspondences;
-    correspondences.reserve(src.size());
-    Eigen::Matrix3d T = Eigen::Matrix3d::Identity();
-    Eigen::Matrix3d t = Eigen::Matrix3d::Zero();
-    // Eigen::Matrix3d t_b = Eigen::Matrix3d::Zero();
-
-
-        while(true){
-
-            // Find nearest neighbors 
-
-            // Perform ICP with known correspondences
-            Eigen::Matrix3d t = icp_known_correspondence(src, target);
-
-            // Save the transformation
-            T = t * T;
-
-            // src = apply_transformation(t, src);
-
-            // Compute the error
-            double err = INFINITY;
-            err = error(src, target, t);
-
-            if (err <= max_err || iter == max_iterations) {
-                return T;
-            }
-            
-            old_err = err;
-            iter++;
-            correspondences.clear();
-        }
 }
+
+std::tuple<std::vector<Eigen::Vector2d>,std::vector<Eigen::Vector2d>> 
+nearest_neighbours(const std::vector<Eigen::Vector2d> &src, const std::unordered_map<Pixel, std::vector<Eigen::Vector2d>> &target_grid, double pixel_size){
+   std::vector<Eigen::Vector2d> s_correspondences(src.size());
+   std::vector<Eigen::Vector2d> t_correspondences(src.size());
+   for (const auto &point : src)
+    {
+        const Pixel p(point, pixel_size);
+        std::vector<Pixel> neighbour_px = neighbour_pixels(p);
+        std::vector<Eigen::Vector2d> neighbours = pixel_points(neighbour_px, target_grid);
+
+        if (neighbours.empty())
+        {
+            continue;
+        }
+
+        double min_dist = INFINITY;
+        Eigen::Vector2d nearest_neighbour = Eigen::Vector2d::Zero();
+        double dist = 0.0;
+        for (const auto &potential_neighbour : neighbours)
+        {
+            // Find the nearest neighbour
+            dist = (point - potential_neighbour).norm();
+            if (dist < min_dist)
+            {
+                min_dist = dist;
+                nearest_neighbour = potential_neighbour;
+            }
+        }
+        
+        s_correspondences.emplace_back(point);
+        t_correspondences.emplace_back(nearest_neighbour);
+    }   
+    return std::make_tuple(s_correspondences, t_correspondences);
+}
+
+
+
+// Eigen::Matrix3d icp_unknown_correspondence(const std::vector<Eigen::Vector2d> &src, const std::vector<Eigen::Vector2d> &target){
+
+//     int max_iterations = 5;
+//     int iter = 0;
+//     double max_err = 0.1;
+//     double old_err =  INFINITY;
+
+//     std::vector<Eigen::Vector2d> correspondences;
+//     correspondences.reserve(src.size());
+//     Eigen::Matrix3d T = Eigen::Matrix3d::Identity();
+//     Eigen::Matrix3d t = Eigen::Matrix3d::Zero();
+//     // Eigen::Matrix3d t_b = Eigen::Matrix3d::Zero();
+
+
+//         while(true){
+
+//             // Find nearest neighbors 
+
+//             // Perform ICP with known correspondences
+//             Eigen::Matrix3d t = icp_known_correspondence(src, target);
+
+//             // Save the transformation
+//             T = t * T;
+
+//             // src = apply_transformation(t, src);
+
+//             // Compute the error
+//             double err = INFINITY;
+//             err = error(src, target, t);
+
+//             if (err <= max_err || iter == max_iterations) {
+//                 return T;
+//             }
+            
+//             old_err = err;
+//             iter++;
+//             correspondences.clear();
+//         }
+// }
 
 
 std::vector<Eigen::Vector2d> apply_transformation(const Eigen::Matrix3d &transformation, const std::vector<Eigen::Vector2d> &src){
