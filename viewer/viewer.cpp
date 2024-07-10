@@ -77,7 +77,7 @@ void viewCloud(const std::vector<Eigen::Vector2d> &first, const std::vector<Eige
 }
 
 
-Eigen::Matrix3d icp_known_corres(std::vector<Eigen::Vector2d> &src, const std::vector<Eigen::Vector2d> &target)
+Eigen::Matrix3d icp_known_correspondence(std::vector<Eigen::Vector2d> &src, const std::vector<Eigen::Vector2d> &target)
 {   
     Eigen::Vector2d x0 = compute_mean(src);
     Eigen::Vector2d y0 = compute_mean(target);
@@ -97,23 +97,24 @@ Eigen::Matrix3d icp_known_corres(std::vector<Eigen::Vector2d> &src, const std::v
     return T;
 }
 
+std::unordered_map<Pixel, std::vector<Eigen::Vector2d>> grid_map(const std::vector<Eigen::Vector2d> &vec, double pixel_size){
+    std::unordered_map<Pixel, std::vector<Eigen::Vector2d>> grid;
+    grid.reserve(vec.size());
+    for (const auto &point : vec)
+    {
+        const Pixel p(point, pixel_size);
+        grid[p].emplace_back(point);
+    }
+    return grid;
+
+
 Eigen::Matrix3d icp_unknown_correspondence(std::vector<Eigen::Vector2d> &src, const std::vector<Eigen::Vector2d> &target){
 
     int max_iterations = 5;
     int iter = 0;
     double max_err = 0.1;
     double old_err =  INFINITY;
-    double best_err = INFINITY;
 
-    // Sample point cloud
-    // std::vector<Eigen::Vector2d> src;
-    // std::vector<Eigen::Vector2d> target;
-    // std::cout<<"Iteration: "<<max_iterations<<std::endl;
-    // src = sample_points(src_org, src_org.size()/2);
-    // target = sample_points(target_org, target_org.size()/2);
-
-    // std::vector<Eigen::Vector3d> sampled_src;
-    // sampled_src.reserve(src.size()/20);
     std::vector<Eigen::Vector2d> correspondences;
     correspondences.reserve(src.size());
     Eigen::Matrix3d T = Eigen::Matrix3d::Identity();
@@ -126,34 +127,18 @@ Eigen::Matrix3d icp_unknown_correspondence(std::vector<Eigen::Vector2d> &src, co
             // Find nearest neighbors 
 
             // Perform ICP with known correspondences
-            Eigen::Matrix3d t = icp_known_corres(src, target);
+            Eigen::Matrix3d t = icp_known_correspondence(src, target);
 
-            // std::cout << "Transformation: \n" << t << std::endl;
             // Save the transformation
             T = t * T;
-            // std::cout << "Added Transformation: \n" << T << std::endl;
+
             // src = apply_transformation(t, src);
 
             // Compute the error
             double err = INFINITY;
             err = error(src, target, t);
 
-            // std::cout << "Error: " << err << std::endl;
-
-            // if (err < best_err) {
-            //     best_err = err;
-            //     t_b = T;
-            // }
-            // std::cout << "Transformation: \n" << T << std::endl;
             if (err <= max_err || iter == max_iterations) {
-                // if (iter == max_iterations) {
-                    // std::cout << "Max iterations reached " << std::endl;
-                    // T = t_b;
-                // }
-                // if (err == old_err) {std::cout << "Converged " << std::endl;}
-                // if (err <= max_err) {std::cout << "Error threshold reached "<< std::endl;}
-                // std::cout << "Final error: " << err << std::endl;
-                // std::cout <<"Final Transformation: \n"<<T<<std::endl;
                 return T;
             }
             

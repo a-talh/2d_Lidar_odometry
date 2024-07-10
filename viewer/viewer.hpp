@@ -3,14 +3,43 @@
 #include <vector>
 #include <open3d/Open3D.h>
 
+// Single Pixel struct
+struct Pixel {
+  Pixel(int x, int y) : i(x), j(y) {}
 
+  Pixel(const Eigen::Vector3d &point, double pixel_size)
+      : i(static_cast<int>(point[0] / pixel_size)),
+        j(static_cast<int>(point[1] / pixel_size)) {}
+
+  bool operator==(const Pixel &px) const {
+    return i == px.i && j == px.j;
+  }
+
+  int i;
+  int j;
+};
+
+// Specialization of std::hash for our custom type Pixel
+namespace std {
+
+template <> struct hash<Pixel> {
+  size_t operator()(const Pixel &px) const {
+    return ((1 << 20) - 1) & (px.i * 73856093 ^ px.j * 19349663);
+  }
+};
+
+} // namespace std
+
+// Functions to view a point cloud
 void viewCloud(const std::vector<Eigen::Vector2d> &pcd);
-
 void viewCloud(const std::vector<Eigen::Vector2d> &first, const std::vector<Eigen::Vector2d> &second);
 
+// Functions to manipulate point clouds
 std::vector<Eigen::Vector3d> get_points(const open3d::geometry::PointCloud &pcd);
 
-Eigen::Matrix3d icp_known_corres(std::vector<Eigen::Vector2d> &src, const std::vector<Eigen::Vector2d> &target);
+Eigen::Matrix3d icp_known_correspondence(std::vector<Eigen::Vector2d> &src, const std::vector<Eigen::Vector2d> &target);
+
+std::unordered_map<Pixel, std::vector<Eigen::Vector2d>> grid_map(const std::vector<Eigen::Vector2d> &vec, double pixel_size);
 
 Eigen::Matrix3d icp_unknown_correspondence(std::vector<Eigen::Vector2d> &src, const std::vector<Eigen::Vector2d> &target);
 
