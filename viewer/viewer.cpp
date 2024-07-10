@@ -6,8 +6,6 @@
 #include <open3d/core/ShapeUtil.h>
 #include <utility>
 #include <vector>
-#include "../annoy/src/annoylib.h"      // for annoy::AnnoyIndex
-#include "../annoy/src/kissrandom.h"
 #include <algorithm>                    // for std::ranges::sample
 #include <random>                       // for std::mt19937
 
@@ -64,11 +62,17 @@ void viewCloud(const std::vector<Eigen::Vector2d> &pcd) {
       {std::make_shared<open3d::geometry::PointCloud>(pointcloud)});
 }
 
-void viewCloud(std::vector<Eigen::Vector2d> &first, const std::vector<Eigen::Vector2d> &second)
+std::vector<Eigen::Vector3d> get_points(const open3d::geometry::PointCloud &pcd)
 {
-    first.reserve(first.size() + second.size());
-    first.insert(first.end(), second.begin(), second.end());
-    viewCloud(first);
+    return pcd.points_;
+}
+
+void viewCloud(const std::vector<Eigen::Vector2d> &first, const std::vector<Eigen::Vector2d> &second)
+{   
+    std::vector<Eigen::Vector2d> result = first;
+    result.reserve(result.size() + second.size());
+    result.insert(result.end(), second.begin(), second.end());
+    viewCloud(result);
 
 }
 
@@ -95,7 +99,7 @@ Eigen::Matrix3d icp_known_corres(std::vector<Eigen::Vector2d> &src, const std::v
 
 Eigen::Matrix3d icp_unknown_correspondence(std::vector<Eigen::Vector2d> &src, const std::vector<Eigen::Vector2d> &target){
 
-    int max_iterations = 50;
+    int max_iterations = 5;
     int iter = 0;
     double max_err = 0.1;
     double old_err =  INFINITY;
@@ -114,31 +118,20 @@ Eigen::Matrix3d icp_unknown_correspondence(std::vector<Eigen::Vector2d> &src, co
     correspondences.reserve(src.size());
     Eigen::Matrix3d T = Eigen::Matrix3d::Identity();
     Eigen::Matrix3d t = Eigen::Matrix3d::Zero();
-    Eigen::Matrix3d t_b = Eigen::Matrix3d::Zero();
+    // Eigen::Matrix3d t_b = Eigen::Matrix3d::Zero();
 
-    // stuff related to Annoy
-    std::vector<int> indices;
-    int dimension = 2;
-    int n_points = target.size();
-    int n_trees = 10;
-
-    // Build the Annoy index for the target point cloud
-    Annoy::AnnoyIndex<int, double, Annoy::Euclidean, Annoy::Kiss64Random,Annoy::AnnoyIndexSingleThreadedBuildPolicy> annoy_index(dimension);
-    for (int i = 0; i < n_points; i++) {annoy_index.add_item(i, target[i].data());}
-    annoy_index.build(n_trees, -1);
 
         while(true){
 
-            // Find nearest neighbors using Annoy
-            std::for_each(src.begin(), src.end(), [&](auto &point) { annoy_index.get_nns_by_vector(point.data(), 1, -1, &indices, nullptr); });
-            std::for_each(indices.begin(), indices.end(), [&](int idx) { correspondences.push_back(target[idx]); });
+            // Find nearest neighbors 
 
             // Perform ICP with known correspondences
             Eigen::Matrix3d t = icp_known_corres(src, target);
 
+            // std::cout << "Transformation: \n" << t << std::endl;
             // Save the transformation
             T = t * T;
-
+            // std::cout << "Added Transformation: \n" << T << std::endl;
             // src = apply_transformation(t, src);
 
             // Compute the error
@@ -167,7 +160,6 @@ Eigen::Matrix3d icp_unknown_correspondence(std::vector<Eigen::Vector2d> &src, co
             old_err = err;
             iter++;
             correspondences.clear();
-            indices.clear();
         }
 }
 
@@ -183,13 +175,6 @@ std::vector<Eigen::Vector2d> apply_transformation(const Eigen::Matrix3d &transfo
     }
     return transformed_points;
 }
-
-std::vector<Eigen::Vector2d> sample_points(const std::vector<Eigen::Vector2d> &vec, int num_samples) {
-    std::vector<Eigen::Vector2d> sampled_vec;
-    std::sample(vec.begin(),vec.end(),std::back_inserter(sampled_vec) ,num_samples, std::mt19937 {std::random_device{}()});
-    return sampled_vec;
-}
-
 
 std::vector<Eigen::Vector2d> concat_pointclouds(std::vector<Eigen::Vector2d> &first, const std::vector<Eigen::Vector2d> &second)
 {
