@@ -1,6 +1,7 @@
 #include <iostream>
 #include "dataloader.hpp"
 #include "viewer.hpp"
+#include "viewer.cpp"
 #include <ctime>
 #include <iomanip>
 
@@ -32,12 +33,11 @@ int main() {
     });
 
     std::cout << "Read points from both pointclouds successfully!" << std::endl;
+
     viewCloud(src, target);
     Eigen::Matrix3d T;
     std::vector<Eigen::Vector2d> result;
-    double pixel_size = 1;
-    int points_per_grid = 1;
-    src = downsample(src, pixel_size, points_per_grid);
+    double pixel_size = 5;
     T = icp_unknown_correspondence(src, target, pixel_size);
     result = apply_transformation(T, src);
     viewCloud(result, target);
