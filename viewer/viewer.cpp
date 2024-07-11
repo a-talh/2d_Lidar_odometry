@@ -125,13 +125,13 @@ std::unordered_map<Pixel, std::vector<Eigen::Vector2d>> grid_map(const std::vect
     for (const auto &point : vec)
     {
         const Pixel p(point, pixel_size);
-        grid[p].emplace_back(point);
+        grid[p].push_back(point);
     }
     return grid;
 }
 
 std::tuple<std::vector<Eigen::Vector2d>,std::vector<Eigen::Vector2d>> 
-nearest_neighbours(const std::vector<Eigen::Vector2d> &src, const std::unordered_map<Pixel, std::vector<Eigen::Vector2d>> &target_grid, double pixel_size){
+nearest_neighbours(const std::vector<Eigen::Vector2d> &src, const std::unordered_map<Pixel, std::vector<Eigen::Vector2d>> &target_grid,const double &pixel_size){
    std::vector<Eigen::Vector2d> s_correspondences(src.size());
    std::vector<Eigen::Vector2d> t_correspondences(src.size());
    for (const auto &point : src)
@@ -167,45 +167,65 @@ nearest_neighbours(const std::vector<Eigen::Vector2d> &src, const std::unordered
 
 
 
-// Eigen::Matrix3d icp_unknown_correspondence(const std::vector<Eigen::Vector2d> &src, const std::vector<Eigen::Vector2d> &target){
+Eigen::Matrix3d icp_unknown_correspondence(std::vector<Eigen::Vector2d> &src, const std::vector<Eigen::Vector2d> &target, const double &pixel_size){
 
-//     int max_iterations = 5;
-//     int iter = 0;
-//     double max_err = 0.1;
-//     double old_err =  INFINITY;
+    int max_iterations = 1;
+    int iter = 0;
+    double max_err = 0.1;
+    double old_err =  INFINITY;
 
-//     std::vector<Eigen::Vector2d> correspondences;
-//     correspondences.reserve(src.size());
-//     Eigen::Matrix3d T = Eigen::Matrix3d::Identity();
-//     Eigen::Matrix3d t = Eigen::Matrix3d::Zero();
-//     // Eigen::Matrix3d t_b = Eigen::Matrix3d::Zero();
+    Eigen::Matrix3d T = Eigen::Matrix3d::Identity();
+    Eigen::Matrix3d t = Eigen::Matrix3d::Zero();
+    std::vector<Eigen::Vector2d> s_correspondences(src.size());
+    std::vector<Eigen::Vector2d> t_correspondences(src.size());
 
+    std::unordered_map<Pixel, std::vector<Eigen::Vector2d>> target_grid = grid_map(target, pixel_size);
+    if (target_grid.empty()){
+        std::cerr << "Target grid is empty" << std::endl;
+        return T;
+    }
+        while(true){
+            iter++;
+            // Find nearest neighbors 
+            std::tuple<std::vector<Eigen::Vector2d>,std::vector<Eigen::Vector2d>> nn = nearest_neighbours(src, target_grid, pixel_size);
+            s_correspondences = std::get<0>(nn);
+            t_correspondences = std::get<1>(nn);
 
-//         while(true){
+            std::cout << "Number of src correspondences: " << s_correspondences.size() << std::endl;
+            std::cout << "Number of target correspondences: " << t_correspondences.size() << std::endl;
 
-//             // Find nearest neighbors 
+            // for (int i = 0; i < s_correspondences.size(); i++)
+            // {
+                // std::cout << "Source: \n" << s_correspondences[i] << std::endl;
+                // std::cout << "Target: \n" << t_correspondences[i] << std::endl;
+            // }
 
-//             // Perform ICP with known correspondences
-//             Eigen::Matrix3d t = icp_known_correspondence(src, target);
-
-//             // Save the transformation
-//             T = t * T;
-
-//             // src = apply_transformation(t, src);
-
-//             // Compute the error
-//             double err = INFINITY;
-//             err = error(src, target, t);
-
-//             if (err <= max_err || iter == max_iterations) {
-//                 return T;
-//             }
+            // Perform ICP with known correspondences
+            t = icp_known_correspondence(s_correspondences, t_correspondences);
+            std::cout << "Transformation: \n" << t << std::endl;
             
-//             old_err = err;
-//             iter++;
-//             correspondences.clear();
-//         }
-// }
+            // Save the transformation
+            T = t * T;
+
+            // Apply the transformation
+            src = apply_transformation(t, src);
+
+            // Compute the error
+            double err = INFINITY;
+            err = error(src, target, t);
+
+            // View the point clouds
+            viewCloud(src, target);
+
+            if (err <= max_err || iter == max_iterations) {
+                return T;
+            }
+            
+            old_err = err;
+            s_correspondences.clear();
+            t_correspondences.clear();
+        }
+}
 
 
 std::vector<Eigen::Vector2d> apply_transformation(const Eigen::Matrix3d &transformation, const std::vector<Eigen::Vector2d> &src){
@@ -225,4 +245,28 @@ std::vector<Eigen::Vector2d> concat_pointclouds(std::vector<Eigen::Vector2d> &fi
     std::vector<Eigen::Vector2d> result = first;
     result.insert(result.end(), second.begin(), second.end());
     return result;
+}
+
+std::vector<Eigen::Vector2d> downsample(const std::vector<Eigen::Vector2d> &vec, const double &pixel_size, const int &n_points)
+{
+ std::vector<Eigen::Vector2d> filtered_points;
+ filtered_points.reserve(vec.size());
+ std::unordered_map<Pixel, int> grid2D;
+ for (const auto &point : vec)
+ {
+     const Pixel p(point, pixel_size);
+     const auto found = grid2D.find(p);
+        if (found == grid2D.end())
+        {
+            grid2D[p] = 1;
+            filtered_points.emplace_back(point);
+        }
+        else if (grid2D[p] < n_points)
+        {
+            grid2D[p]++;
+            filtered_points.emplace_back(point);
+        }
+ }
+
+return filtered_points;
 }

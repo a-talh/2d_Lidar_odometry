@@ -3,11 +3,11 @@
 #include <vector>
 #include <open3d/Open3D.h>
 
-// Single Pixel struct
+// Single Pixel struct to represent a tile of the grid map
 struct Pixel {
   Pixel(int x, int y) : i(x), j(y) {}
 
-  Pixel(const Eigen::Vector3d &point, double pixel_size)
+  Pixel(const Eigen::Vector2d &point, double pixel_size)
       : i(static_cast<int>(point[0] / pixel_size)),
         j(static_cast<int>(point[1] / pixel_size)) {}
 
@@ -41,10 +41,13 @@ Eigen::Matrix3d icp_known_correspondence(std::vector<Eigen::Vector2d> &src, cons
 
 std::unordered_map<Pixel, std::vector<Eigen::Vector2d>> grid_map(const std::vector<Eigen::Vector2d> &vec, double pixel_size);
 
-std::tuple<std::vector<Eigen::Vector2d>,std::vector<Eigen::Vector2d>> nearest_neighbours(const std::vector<Eigen::Vector2d> &src, const std::unordered_map<Pixel, std::vector<Eigen::Vector2d>> &target_grid, double pixel_size);
+std::tuple<std::vector<Eigen::Vector2d>,std::vector<Eigen::Vector2d>> 
+nearest_neighbours(const std::vector<Eigen::Vector2d> &src, const std::unordered_map<Pixel, std::vector<Eigen::Vector2d>> &target_grid, const double &pixel_size);
 
-// Eigen::Matrix3d icp_unknown_correspondence(const std::vector<Eigen::Vector2d> &src, const std::vector<Eigen::Vector2d> &target);
+Eigen::Matrix3d icp_unknown_correspondence(std::vector<Eigen::Vector2d> &src, const std::vector<Eigen::Vector2d> &target, const double &pixel_size);
 
 std::vector<Eigen::Vector2d> apply_transformation(const Eigen::Matrix3d &transformation, const std::vector<Eigen::Vector2d> &src);
 
 std::vector<Eigen::Vector2d> concat_pointclouds(std::vector<Eigen::Vector2d> &first, const std::vector<Eigen::Vector2d> &second);
+
+std::vector<Eigen::Vector2d> downsample(const std::vector<Eigen::Vector2d> &vec, const double &pixel_size, const int &n_points);

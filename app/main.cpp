@@ -35,10 +35,13 @@ int main() {
     viewCloud(src, target);
     Eigen::Matrix3d T;
     std::vector<Eigen::Vector2d> result;
-    T = icp_known_corres(src, target);
+    double pixel_size = 1;
+    int points_per_grid = 1;
+    src = downsample(src, pixel_size, points_per_grid);
+    T = icp_unknown_correspondence(src, target, pixel_size);
     result = apply_transformation(T, src);
     viewCloud(result, target);
-
+    
     // std::string data_root = "data/";
     // std::cout<<"Loading data"<< std::endl;
     // dataset::LaserScanDataset laser_data(data_root);
