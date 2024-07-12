@@ -5,43 +5,46 @@
 #include <ctime>
 #include <iomanip>
 
-int main() {
+int main()
+{
+    int i = 0; // choose the pointcloud to be used 0 = test_pc, 1 = Lidar data
+    if (i == 0){
+        const std::string filename1 = "data/src.ply";
+        const std::string filename = "data/target.ply";
 
-    const std::string filename = "data/src.ply";
-    const std::string filename1 = "data/target.ply";
+        open3d::geometry::PointCloud pcd;
+        open3d::geometry::PointCloud pcd1;
 
-    open3d::geometry::PointCloud pcd;
-    open3d::geometry::PointCloud pcd1;
+        open3d::io::ReadPointCloud(filename, pcd);
+        open3d::io::ReadPointCloud(filename1, pcd1);
 
-    open3d::io::ReadPointCloud(filename, pcd);
-    open3d::io::ReadPointCloud(filename1, pcd1);
+        std::vector<Eigen::Vector3d> points;
+        std::vector<Eigen::Vector3d> points1;
+        // get points from pointclouds
+        points = get_points(pcd);
+        points1 = get_points(pcd1);
 
-    std::vector<Eigen::Vector3d> points;
-    std::vector<Eigen::Vector3d> points1;
-    // get points from pointclouds
-    points = get_points(pcd);
-    points1 = get_points(pcd1);
+        std::vector<Eigen::Vector2d> src;
+        std::vector<Eigen::Vector2d> target;
+        // convert 3D points to 2D points
+        std::transform(points.begin(), points.end(), std::back_inserter(src), [](const auto &p)
+                    { return Eigen::Vector2d(p.x(), p.y()); });
+        std::transform(points1.begin(), points1.end(), std::back_inserter(target), [](const auto &p)
+                    { return Eigen::Vector2d(p.x(), p.y()); });
 
-    std::vector<Eigen::Vector2d> src;
-    std::vector<Eigen::Vector2d> target;
-    // convert 3D points to 2D points
-    std::transform(points.begin(), points.end(), std::back_inserter(src), [](const auto &p) {
-        return Eigen::Vector2d(p.x(), p.y());
-    });
-    std::transform(points1.begin(), points1.end(), std::back_inserter(target), [](const auto &p) {
-        return Eigen::Vector2d(p.x(), p.y());
-    });
+        std::cout << "Read points from both pointclouds successfully!" << std::endl;
+        viewCloud(src, target);
 
-    std::cout << "Read points from both pointclouds successfully!" << std::endl;
-
-    viewCloud(src, target);
-    Eigen::Matrix3d T;
-    std::vector<Eigen::Vector2d> result;
-    double pixel_size = 5;
-    T = icp_unknown_correspondence(src, target, pixel_size);
-    result = apply_transformation(T, src);
-    viewCloud(result, target);
+        // Apply ICP
+        Eigen::Matrix3d T;
+        double pixel_size = 5;
+        T = icp_unknown_correspondence(src, target, pixel_size);
+        std::cout << "Applying transformations " << std::endl;
+        src = apply_transformation(T, src);
+        viewCloud(src, target);
+        }
     
+    if (i == 1){
     // std::string data_root = "data/";
     // std::cout<<"Loading data"<< std::endl;
     // dataset::LaserScanDataset laser_data(data_root);
@@ -51,7 +54,7 @@ int main() {
 
     // int iters = num_scans - 1;
     // int iters = 1;
-    // dataset::LaserScanDataset::Transformation T;  
+    // dataset::LaserScanDataset::Transformation T;
     // dataset::LaserScanDataset::PointCloud src;
     // dataset::LaserScanDataset::PointCloud target;
     // dataset::LaserScanDataset::PointCloud transformed_pc;
@@ -70,7 +73,7 @@ int main() {
 
     // std::cout<<"\nApplying transformation\n"<<std::endl;
     // for (int i = 0; i < iters; i++)
-    // {   
+    // {
     //     std::cout<<i<<std::endl;
     //     if (i == 0)
     //     {
@@ -93,12 +96,15 @@ int main() {
     //     laser_data.SetRegisteredPointCloud(result);
     // }
 
-    
     // // Visualize the point clouds
     // result = laser_data.GetRegisteredPointCloud();
     // std::cout<<"Number of points in the registered point cloud: "<<result.size()<<std::endl;
     // viewCloud(result);
+    }
+
+    else {
+        std::cout<<"Invalid choice"<<std::endl;
+    }
+    
     return 0;
 }
-
-
