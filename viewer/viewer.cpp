@@ -186,7 +186,7 @@ nearest_neighbours(const std::vector<Eigen::Vector2d> &src, const std::unordered
 Eigen::Matrix3d icp_unknown_correspondence(const std::vector<Eigen::Vector2d> &src_, const std::vector<Eigen::Vector2d> &target, const double &pixel_size)
 {
 
-    int max_iterations = 30;
+    int max_iterations = 50;
     int iter = 0;
     double old_err = INFINITY;
 
@@ -227,11 +227,10 @@ Eigen::Matrix3d icp_unknown_correspondence(const std::vector<Eigen::Vector2d> &s
         // Compute the error
         double err = INFINITY;
         err = error(src, target, t);
+        // std::cout<<"Error: "<<err<<std::endl;
 
         if (iter == max_iterations || err == old_err)
         {
-            // std::cout << "Transformation matrix: \n" << T << std::endl;
-            viewCloud(src, target);
             return T;
         }
 

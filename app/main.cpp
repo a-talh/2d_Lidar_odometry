@@ -7,8 +7,9 @@
 
 int main()
 {
-    int i = 0; // choose the pointcloud to be used 0 = test_pc, 1 = Lidar data
-    if (i == 0){
+    int choice = 1; // choose the pointcloud to be used 0 = test_pc, 1 = Lidar data
+
+    if (choice == 0){
         const std::string filename1 = "data/src.ply";
         const std::string filename = "data/target.ply";
 
@@ -44,65 +45,68 @@ int main()
         viewCloud(src, target);
         }
     
-    if (i == 1){
-    // std::string data_root = "data/";
-    // std::cout<<"Loading data"<< std::endl;
-    // dataset::LaserScanDataset laser_data(data_root);
+    if (choice == 1){
+        std::string data_root = "data/";
+        std::cout<<"Loading data"<< std::endl;
+        dataset::LaserScanDataset laser_data(data_root);
 
-    // int num_scans = laser_data.size();
-    // std::cout<<"Available time "<<(num_scans*0.1)/60<<" minutes"<<std::endl;
+        int num_scans = laser_data.size();
+        std::cout<<"Available time "<<(num_scans*0.1)/60<<" minutes"<<std::endl;
 
-    // int iters = num_scans - 1;
-    // int iters = 1;
-    // dataset::LaserScanDataset::Transformation T;
-    // dataset::LaserScanDataset::PointCloud src;
-    // dataset::LaserScanDataset::PointCloud target;
-    // dataset::LaserScanDataset::PointCloud transformed_pc;
-    // dataset::LaserScanDataset::PointCloud result;
+        // int iters = num_scans - 1;
+        int iters = 300;        // Number of iterations to run ICP
+        double pixel_size = 0.05;
 
-    // std::cout<<"Applying ICP "<<std::endl;
-    // for (int i = 0; i < iters; i++)
-    // {
-    //     src = laser_data[i];
-    //     target = laser_data[i+1];
-    //     std::cout<<i<<std::endl;
-    //     T = icp_unknown_correspondence(src, target);
-    //     laser_data.SetTransformation(T);
+        dataset::LaserScanDataset::Transformation T;
+        dataset::LaserScanDataset::PointCloud src;
+        dataset::LaserScanDataset::PointCloud target;
+        dataset::LaserScanDataset::PointCloud transformed_pc;
+        dataset::LaserScanDataset::PointCloud result;
+        std::cout<<"Applying ICP "<<std::endl;
 
-    // }
+        for (int i = 0; i < iters; i++)
+        {
+            src = laser_data[i];
+            target = laser_data[i+1];
+            std::cout<<i<<std::endl;
+            T = icp_unknown_correspondence(src, target, pixel_size);
+            laser_data.SetTransformation(T);
 
-    // std::cout<<"\nApplying transformation\n"<<std::endl;
-    // for (int i = 0; i < iters; i++)
-    // {
-    //     std::cout<<i<<std::endl;
-    //     if (i == 0)
-    //     {
-    //         transformed_pc = laser_data[i];
-    //         T = laser_data.GetTransformation(i);
-    //         result = apply_transformation(T, transformed_pc);
-    //         // result = sample_points(result, result.size()/2);
-    //         target = laser_data[i+1];
-    //         result = concat_pointclouds(result, target);
-    //         laser_data.SetRegisteredPointCloud(result);
-    //         continue;
-    //     }
+        }
 
-    //     transformed_pc = laser_data.GetRegisteredPointCloud();
-    //     T = laser_data.GetTransformation(i);
-    //     result = apply_transformation(T, transformed_pc);
-    //     // result = sample_points(result, result.size()/2);
-    //     target = laser_data[i+1];
-    //     result = concat_pointclouds(result, target);
-    //     laser_data.SetRegisteredPointCloud(result);
-    // }
+        std::cout<<"Applying transformation"<<std::endl;
+        pixel_size = 0.1;
+        for (int i = 0; i < iters; i++)
+        {
+            std::cout<<i<<std::endl;
+            if (i == 0)
+            {
+                transformed_pc = laser_data[i];
+                T = laser_data.GetTransformation(i);
+                result = apply_transformation(T, transformed_pc);
+                target = laser_data[i+1];
+                result = concat_pointclouds(result, target);
+                // result = downsample(result, pixel_size, 1);
+                laser_data.SetRegisteredPointCloud(result);
+                continue;
+            }
 
-    // // Visualize the point clouds
-    // result = laser_data.GetRegisteredPointCloud();
-    // std::cout<<"Number of points in the registered point cloud: "<<result.size()<<std::endl;
-    // viewCloud(result);
+            transformed_pc = laser_data.GetRegisteredPointCloud();
+            T = laser_data.GetTransformation(i);
+            result = apply_transformation(T, transformed_pc);
+            target = laser_data[i+1];
+            result = concat_pointclouds(result, target);
+            result = downsample(result, pixel_size, 2);
+            laser_data.SetRegisteredPointCloud(result);
+        }
+
+        // Visualize the point clouds
+        result = laser_data.GetRegisteredPointCloud();
+        std::cout<<"Number of points in the registered point cloud: "<<result.size()<<std::endl;
+        viewCloud(result);
     }
 
-    else {
+    else if (choice != 0 || choice != 1){
         std::cout<<"Invalid choice"<<std::endl;
     }
     
