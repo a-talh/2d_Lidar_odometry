@@ -14,7 +14,7 @@ namespace
     Eigen::Vector2d compute_mean(const std::vector<Eigen::Vector2d> &vec)
     {
         Eigen::Vector2d zero = Eigen::Vector2d::Zero();
-        Eigen::Vector2d mean = std::accumulate(vec.begin(), vec.end(), zero);
+        Eigen::Vector2d mean = std::accumulate(vec.begin(), vec.end(), zero );
         return mean / vec.size();
     }
 
@@ -67,8 +67,8 @@ namespace
     std::vector<Pixel> neighbour_pixels(const Pixel &p, const int pixels = 1)
     {
         std::vector<Pixel> neighbour_pixels;
-        for (int x = -pixels; x < pixels; x++)
-            for (int y = -pixels; y < pixels; y++)
+        for (int x = -pixels; x < pixels; ++x)
+            for (int y = -pixels; y < pixels; ++y)
                 neighbour_pixels.emplace_back(Pixel(p.i + x, p.j + y));
         return neighbour_pixels;
     }
@@ -135,14 +135,15 @@ Eigen::Matrix3d icp_known_correspondence(std::vector<Eigen::Vector2d> &src, cons
 }
 
 std::unordered_map<Pixel, std::vector<Eigen::Vector2d>> grid_map(const std::vector<Eigen::Vector2d> &vec, double pixel_size)
-{
+{   
     std::unordered_map<Pixel, std::vector<Eigen::Vector2d>> grid;
-    grid.reserve(vec.size());
+
     for (const auto &point : vec)
     {
         const Pixel p(point, pixel_size);
         grid[p].push_back(point);
     }
+    
     return grid;
 }
 
@@ -186,7 +187,7 @@ nearest_neighbours(const std::vector<Eigen::Vector2d> &src, const std::unordered
 Eigen::Matrix3d icp_unknown_correspondence(const std::vector<Eigen::Vector2d> &src_, const std::vector<Eigen::Vector2d> &target, const double &pixel_size)
 {
 
-    int max_iterations = 50;
+    int max_iterations = 100;
     int iter = 0;
     double old_err = INFINITY;
 
@@ -282,6 +283,28 @@ std::vector<Eigen::Vector2d> downsample(const std::vector<Eigen::Vector2d> &vec,
         {
             grid2D[p]++;
             filtered_points.emplace_back(point);
+        }
+    }
+
+    return filtered_points;
+}
+
+std::vector<Eigen::Vector2d> downSampleMean(const std::vector<Eigen::Vector2d> &vec, const double &pixel_size)
+{
+    std::vector<Eigen::Vector2d> filtered_points;
+    filtered_points.reserve(vec.size());
+    std::unordered_map<Pixel, std::vector<Eigen::Vector2d>> map2d;
+    map2d = grid_map(vec, pixel_size);
+
+    for (const auto &point : vec)
+    {
+        const Pixel p(point, pixel_size);
+        const auto it = map2d.find(p);
+        if (it != map2d.end())
+        {
+            Eigen::Vector2d mean = compute_mean(it->second);
+            filtered_points.emplace_back(mean);
+            map2d.erase(it);
         }
     }
 

@@ -7,7 +7,7 @@
 
 int main()
 {
-    int choice = 1; // choose the pointcloud to be used 0 = test_pc, 1 = Lidar data
+    int choice = 2; // choose the pointcloud to be used 0 = test_pc, 1 = Lidar data, 2 = Lidar data different approach
 
     if (choice == 0){
         const std::string filename1 = "data/src.ply";
@@ -42,6 +42,9 @@ int main()
         T = icp_unknown_correspondence(src, target, pixel_size);
         std::cout << "Applying transformations " << std::endl;
         src = apply_transformation(T, src);
+        src = concat_pointclouds(src, target);
+        pixel_size = 0.05;
+        src = downSampleMean(src, pixel_size);
         viewCloud(src, target);
         }
     
@@ -54,59 +57,101 @@ int main()
         std::cout<<"Available time "<<(num_scans*0.1)/60<<" minutes"<<std::endl;
 
         // int iters = num_scans - 1;
-        int iters = 300;        // Number of iterations to run ICP
-        double pixel_size = 0.05;
+        int iters = 30;        // Number of iterations to run ICP
+        double pixel_size = 0.5; 
 
-        dataset::LaserScanDataset::Transformation T;
+        std::vector<dataset::LaserScanDataset::Transformation> T;
         dataset::LaserScanDataset::PointCloud src;
         dataset::LaserScanDataset::PointCloud target;
-        dataset::LaserScanDataset::PointCloud transformed_pc;
-        dataset::LaserScanDataset::PointCloud result;
-        std::cout<<"Applying ICP "<<std::endl;
+        int j = 0;
+ 
+        std::cout<<"Applying ICP \n============== "<<std::endl;
+        std::cout<<"Progress \n";
 
         for (int i = 0; i < iters; i++)
         {
             src = laser_data[i];
             target = laser_data[i+1];
-            std::cout<<i<<std::endl;
-            T = icp_unknown_correspondence(src, target, pixel_size);
-            laser_data.SetTransformation(T);
-
+            T.emplace_back(icp_unknown_correspondence(src, target, pixel_size));
+            j = 100 * (i+1) / iters;
+            std::cout<<"\r "<<j<<" %"<<std::flush;
         }
 
-        std::cout<<"Applying transformation"<<std::endl;
+        std::cout<<"Applying Transformations \n============== "<<std::endl;
+        std::cout<<"Progress \n";
         pixel_size = 0.1;
         for (int i = 0; i < iters; i++)
-        {
-            std::cout<<i<<std::endl;
-            if (i == 0)
-            {
-                transformed_pc = laser_data[i];
-                T = laser_data.GetTransformation(i);
-                result = apply_transformation(T, transformed_pc);
-                target = laser_data[i+1];
-                result = concat_pointclouds(result, target);
-                // result = downsample(result, pixel_size, 1);
-                laser_data.SetRegisteredPointCloud(result);
-                continue;
+        {   if (i == 0){
+            src = apply_transformation(T[i], laser_data[i]);
+            src = concat_pointclouds(src, laser_data[i+1]);
+            src = downSampleMean(src, pixel_size);
+            laser_data.SetRegisteredPointCloud(src);
+            src.clear();
             }
-
-            transformed_pc = laser_data.GetRegisteredPointCloud();
-            T = laser_data.GetTransformation(i);
-            result = apply_transformation(T, transformed_pc);
-            target = laser_data[i+1];
-            result = concat_pointclouds(result, target);
-            result = downsample(result, pixel_size, 2);
-            laser_data.SetRegisteredPointCloud(result);
+            if (i > 0){
+            src = laser_data.GetRegisteredPointCloud();
+            src = apply_transformation(T[i], src);
+            src = concat_pointclouds(src, laser_data[i+1]);
+            src = downSampleMean(src, pixel_size);
+            laser_data.SetRegisteredPointCloud(src);
+            src.clear();
+            }  
+            j = 100 * (i+1) / iters;
+            std::cout<<"\r "<<j<<" %"<<std::flush;
         }
-
-        // Visualize the point clouds
-        result = laser_data.GetRegisteredPointCloud();
-        std::cout<<"Number of points in the registered point cloud: "<<result.size()<<std::endl;
-        viewCloud(result);
+        src = laser_data.GetRegisteredPointCloud();
+        std::cout<<"\nNumber of points in the registered point cloud: "<<src.size()<<std::endl;
+        viewCloud(src);
     }
 
-    else if (choice != 0 || choice != 1){
+    if (choice == 2){
+        std::string data_root = "data/";
+        dataset::LaserScanDataset laser_data(data_root);
+
+        int num_scans = laser_data.size();
+        // std::cout<<"Data loaded, available processing time "<<(num_scans*0.1)/60<<" minutes"<<std::endl;
+
+        // int iters = num_scans - 1;
+        int iters = 30;        // Number of iterations to run ICP
+        double pixel_size = 0.1; 
+
+        dataset::LaserScanDataset::Transformation T;
+        dataset::LaserScanDataset::PointCloud src;
+        dataset::LaserScanDataset::PointCloud target;
+        int j = 0;
+ 
+        std::cout<<"Applying ICP & Transformations \n________________________ "<<std::endl;
+        std::cout<<"Progress \n";
+
+        pixel_size = 0.2;
+        for (int i = 0; i < iters; i++)
+        {   if (i == 0){
+            src = laser_data[i];
+            target = laser_data[i+1];
+            T = icp_unknown_correspondence(src, target, pixel_size);
+            src = apply_transformation(T, src);
+            src = concat_pointclouds(src, target);
+            // src = downSampleMean(src, 0.08);
+            src = downsample(src, 0.08,1);
+            target.clear();
+            }
+            if (i > 0){
+            target = laser_data[i+1];
+            T = icp_unknown_correspondence(src, target, pixel_size);
+            src = apply_transformation(T, src);
+            src = concat_pointclouds(src, target);
+            // src = downSampleMean(src, 0.08);
+            src = downsample(src, 0.08, 1);
+            target.clear();
+            }  
+            j = 100 * (i+1) / iters;
+            std::cout<<"\r "<<j<<" %"<<std::flush;
+        }
+        std::cout<<"\nNumber of points in the registered point cloud: "<<src.size()<<std::endl;
+        viewCloud(src);
+    }
+
+    else if (choice != 0 && choice != 1 && choice != 2){
         std::cout<<"Invalid choice"<<std::endl;
     }
     
