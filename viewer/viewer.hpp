@@ -8,7 +8,7 @@ struct Pixel
 {
   Pixel(int x, int y) : i(x), j(y) {}
 
-  Pixel(const Eigen::Vector2d &point, double pixel_size)
+  Pixel(const Eigen::Vector2d &point, const double &pixel_size)
       : i(static_cast<int>(point[0] / pixel_size)),
         j(static_cast<int>(point[1] / pixel_size)) {}
 

@@ -7,7 +7,7 @@
 
 int main()
 {
-    int choice = 2; // choose the pointcloud to be used 0 = test_pc, 1 = Lidar data, 2 = Lidar data different approach
+    int choice = 0; // choose the pointcloud to be used 0 = test_pc, 1 = Lidar data, 2 = Lidar data different approach
 
     if (choice == 0){
         const std::string filename1 = "data/src.ply";
@@ -38,13 +38,13 @@ int main()
 
         // Apply ICP
         Eigen::Matrix3d T;
-        double pixel_size = 5;
+        double pixel_size = 2;
         T = icp_unknown_correspondence(src, target, pixel_size);
         std::cout << "Applying transformations " << std::endl;
         src = apply_transformation(T, src);
         src = concat_pointclouds(src, target);
-        pixel_size = 0.05;
-        src = downSampleMean(src, pixel_size);
+        // pixel_size = 0.05;
+        // src = downSampleMean(src, pixel_size);
         viewCloud(src, target);
         }
     
@@ -112,8 +112,8 @@ int main()
         // std::cout<<"Data loaded, available processing time "<<(num_scans*0.1)/60<<" minutes"<<std::endl;
 
         // int iters = num_scans - 1;
-        int iters = 30;        // Number of iterations to run ICP
-        double pixel_size = 0.1; 
+        int iters = 1;        // Number of iterations to run ICP
+        double pixel_size = 2; 
 
         dataset::LaserScanDataset::Transformation T;
         dataset::LaserScanDataset::PointCloud src;
@@ -123,7 +123,6 @@ int main()
         std::cout<<"Applying ICP & Transformations \n________________________ "<<std::endl;
         std::cout<<"Progress \n";
 
-        pixel_size = 0.2;
         for (int i = 0; i < iters; i++)
         {   if (i == 0){
             src = laser_data[i];
@@ -132,7 +131,7 @@ int main()
             src = apply_transformation(T, src);
             src = concat_pointclouds(src, target);
             // src = downSampleMean(src, 0.08);
-            src = downsample(src, 0.08,1);
+            // src = downsample(src, 0.08,1);
             target.clear();
             }
             if (i > 0){
@@ -141,13 +140,14 @@ int main()
             src = apply_transformation(T, src);
             src = concat_pointclouds(src, target);
             // src = downSampleMean(src, 0.08);
-            src = downsample(src, 0.08, 1);
+            // src = downsample(src, 0.08, 1);
             target.clear();
             }  
             j = 100 * (i+1) / iters;
             std::cout<<"\r "<<j<<" %"<<std::flush;
         }
         std::cout<<"\nNumber of points in the registered point cloud: "<<src.size()<<std::endl;
+        std::cout<<src[0]<<std::endl;
         viewCloud(src);
     }
 
