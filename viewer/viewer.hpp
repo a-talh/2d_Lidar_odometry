@@ -60,5 +60,3 @@ std::vector<Eigen::Vector2d> concat_pointclouds(std::vector<Eigen::Vector2d> &fi
 std::vector<Eigen::Vector2d> downsample(const std::vector<Eigen::Vector2d> &vec, const double &pixel_size, const int &n_points);
 
 std::vector<Eigen::Vector2d> downSampleMean(const std::vector<Eigen::Vector2d> &vec, const double &pixel_size);
-
-std::tuple<std::vector<Eigen::Vector2d>, std::vector<Eigen::Vector2d>> findNearestNeighbours(const std::vector<Eigen::Vector2d> &src, const std::unordered_map<Pixel, std::vector<Eigen::Vector2d>> &target_grid, const double &pixel_size);

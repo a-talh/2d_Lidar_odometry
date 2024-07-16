@@ -32,18 +32,7 @@ namespace
 
     Eigen::Matrix3d save_transformation(const Eigen::Matrix3d &old_transformation, const Eigen::Matrix3d &transformation)
     {
-        // Eigen::Matrix2d R = old_transformation.block<2, 2>(0, 0);
-        // Eigen::Matrix2d new_R = transformation.block<2, 2>(0, 0);
-        // Eigen::Vector2d t = old_transformation.block<2, 1>(0, 2);
-        // Eigen::Vector2d new_t = transformation.block<2, 1>(0, 2);
-        // Eigen::Vector2d sum_t = t + new_t;
-        // Eigen::Matrix2d sum_R = new_R * R;
-        // Eigen::Matrix3d T;
-        // T = 
-        // T.block<2, 2>(0, 0) = sum_R;
-        // T.block<2, 1>(0, 2) = sum_t;
-
-        return transformation * old_transformation;;
+        return transformation * old_transformation;
     }
 
     double error(const std::vector<Eigen::Vector2d> &src, const std::vector<Eigen::Vector2d> &target, const Eigen::Matrix3d &transformation)
@@ -328,57 +317,4 @@ std::vector<Eigen::Vector2d> downSampleMean(const std::vector<Eigen::Vector2d> &
     }
 
     return filtered_points;
-}
-
-std::tuple<std::vector<Eigen::Vector2d>, std::vector<Eigen::Vector2d>> findNearestNeighbours(const std::vector<Eigen::Vector2d> &src, const std::unordered_map<Pixel, std::vector<Eigen::Vector2d>> &target_grid, const double &pixel_size)
-{
-    std::vector<Eigen::Vector2d> ss;
-    std::vector<Eigen::Vector2d> nn;
-    for (auto &point : src)
-    {
-
-        Pixel p(point, pixel_size);
-        std::cout<<"______________________"<<std::endl;
-        std::cout<<"Pixel: "<<p.i<<" "<<p.j<<std::endl;
-        // std::vector<Pixel> n_px = neighbour_pixels(p, 1);
-        std::vector<Pixel> n_px = GetAdjacentPixels(p, 1);
-        
-        std::cout<<"Neighbour pixels: "<<n_px.size()<<std::endl;
-        
-        Eigen::Vector2d qp;
-        Eigen::Vector2d nn_point;
-        double d = std::numeric_limits<double>::max();
-        double min_dist = std::numeric_limits<double>::max();
-        for (auto &px : n_px)
-        {   
-            std::cout<<"Pixel: "<<px.i<<" "<<px.j<<std::endl;
-            const auto it = target_grid.find(px);
-            if (it != target_grid.end())
-            {
-                std::vector<Eigen::Vector2d> p_vec = it->second;
-
-                for (const auto &pn : p_vec)
-                {   
-                    std::cout<<"Point: "<<pn.x()<<" "<<pn.y()<<std::endl;
-                    d = (point - pn).norm();
-                    if (d < min_dist)
-                    {
-                        min_dist = d;
-                        qp = point;
-                        nn_point = pn;
-                    }
-                }
-            }
-            if (it == target_grid.end())
-            {
-                min_dist = INFINITY;
-            }
-        }
-        if (min_dist != INFINITY)
-        {
-            ss.push_back(qp);
-            nn.push_back(nn_point);
-        }
-    }
-    return std::make_tuple(ss, nn);
 }
