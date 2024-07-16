@@ -111,8 +111,8 @@ int main()
         int num_scans = laser_data.size();
         // std::cout<<"Data loaded, available processing time "<<(num_scans*0.1)/60<<" minutes"<<std::endl;
 
-        int iters = num_scans - 1;
-        // int iters = 1;        // Number of Scans to process
+        // int iters = num_scans - 1;
+        int iters = 1;        // Number of Scans to process
         double pixel_size = 0.1; 
 
         dataset::LaserScanDataset::Transformation T;
