@@ -7,7 +7,7 @@
 
 int main()
 {
-    int choice = 0; // choose the pointcloud to be used 0 = test_pc, 1 = Lidar data, 2 = Lidar data different approach
+    int choice = 2; // choose the pointcloud to be used 0 = test_pc, 1 = Lidar data, 2 = Lidar data different approach
 
     if (choice == 0){
         const std::string filename1 = "data/src.ply";
@@ -111,9 +111,9 @@ int main()
         int num_scans = laser_data.size();
         // std::cout<<"Data loaded, available processing time "<<(num_scans*0.1)/60<<" minutes"<<std::endl;
 
-        // int iters = num_scans - 1;
-        int iters = 1;        // Number of iterations to run ICP
-        double pixel_size = 2; 
+        int iters = num_scans - 1;
+        // int iters = 1500;        // Number of Scans to process
+        double pixel_size = 0.1; 
 
         dataset::LaserScanDataset::Transformation T;
         dataset::LaserScanDataset::PointCloud src;
@@ -123,31 +123,21 @@ int main()
         std::cout<<"Applying ICP & Transformations \n________________________ "<<std::endl;
         std::cout<<"Progress \n";
 
-        for (int i = 0; i < iters; i++)
-        {   if (i == 0){
-            src = laser_data[i];
-            target = laser_data[i+1];
+        src = laser_data[0];
+        for (int i = 1; i <= iters; i++)
+        {   
+            target = laser_data[i];
             T = icp_unknown_correspondence(src, target, pixel_size);
             src = apply_transformation(T, src);
             src = concat_pointclouds(src, target);
-            // src = downSampleMean(src, 0.08);
-            // src = downsample(src, 0.08,1);
+            // src = downSampleMean(src, 0.1);
+            src = downsample(src, 0.1, 1);
             target.clear();
-            }
-            if (i > 0){
-            target = laser_data[i+1];
-            T = icp_unknown_correspondence(src, target, pixel_size);
-            src = apply_transformation(T, src);
-            src = concat_pointclouds(src, target);
-            // src = downSampleMean(src, 0.08);
-            // src = downsample(src, 0.08, 1);
-            target.clear();
-            }  
-            j = 100 * (i+1) / iters;
+            
+            j = 100 * (i) / iters;
             std::cout<<"\r "<<j<<" %"<<std::flush;
         }
         std::cout<<"\nNumber of points in the registered point cloud: "<<src.size()<<std::endl;
-        std::cout<<src[0]<<std::endl;
         viewCloud(src);
     }
 
