@@ -215,6 +215,7 @@ Eigen::Matrix3d icp_unknown_correspondence(const std::vector<Eigen::Vector2d> &s
         // std::tuple<std::vector<Eigen::Vector2d>, std::vector<Eigen::Vector2d>> nn = findNearestNeighbours(src, target_grid, pixel_size);
         s_correspondences = std::get<0>(nn);
         t_correspondences = std::get<1>(nn);
+       
 
         // Perform ICP with known correspondences
         t = icp_known_correspondence(s_correspondences, t_correspondences);
@@ -232,7 +233,7 @@ Eigen::Matrix3d icp_unknown_correspondence(const std::vector<Eigen::Vector2d> &s
 
         // Apply the transformation
         src = apply_transformation(t, src);
-
+        
         // Compute the error
         double err = INFINITY;
         err = error(src, target, t);

@@ -2,7 +2,8 @@
 #include "dataloader.hpp"
 #include "viewer.hpp"
 #include "viewer.cpp"
-#include <ctime>
+#include <ctime>    // For time()
+#include <chrono>   // To monitor time
 #include <iomanip>
 
 int main()
@@ -38,7 +39,7 @@ int main()
 
         // Apply ICP
         Eigen::Matrix3d T;
-        double pixel_size = 2;
+        double pixel_size = 2.0;
         T = icp_unknown_correspondence(src, target, pixel_size);
         std::cout << "Applying transformations " << std::endl;
         src = apply_transformation(T, src);
@@ -112,7 +113,7 @@ int main()
         // std::cout<<"Data loaded, available processing time "<<(num_scans*0.1)/60<<" minutes"<<std::endl;
 
         // int iters = num_scans - 1;
-        int iters = 1;        // Number of Scans to process
+        int iters = 10;        // Number of Scans to process
         double pixel_size = 0.1; 
 
         dataset::LaserScanDataset::Transformation T;
@@ -122,7 +123,8 @@ int main()
  
         std::cout<<"Applying ICP & Transformations \n________________________ "<<std::endl;
         std::cout<<"Progress \n";
-
+        // Get the starting timepoint
+        auto start = std::chrono::high_resolution_clock::now();     // Time point before the execution of the code
         src = laser_data[0];
         for (int i = 1; i <= iters; i++)
         {   
@@ -137,6 +139,9 @@ int main()
             j = 100 * (i) / iters;
             std::cout<<"\r "<<j<<" %"<<std::flush;
         }
+        auto end = std::chrono::high_resolution_clock::now();       // Time point after the execution of the code
+        auto duration = std::chrono::duration_cast<std::chrono::seconds>(end - start);
+        std::cout << "Execution time: " << duration.count() << " seconds" << std::endl; // Time taken for the execution of the code
         std::cout<<"\nNumber of points in the registered point cloud: "<<src.size()<<std::endl;
         viewCloud(src);
     }
