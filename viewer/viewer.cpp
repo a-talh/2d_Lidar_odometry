@@ -254,13 +254,9 @@ Eigen::Matrix3d icp_unknown_correspondence(const std::vector<Eigen::Vector2d> &s
 std::vector<Eigen::Vector2d> apply_transformation(const Eigen::Matrix3d &transformation, const std::vector<Eigen::Vector2d> &src)
 {
     std::vector<Eigen::Vector2d> transformed_points;
-    // transformed_points.reserve(src.size());
+    transformed_points.reserve(src.size());
     Eigen::Matrix2d R = transformation.block<2, 2>(0, 0);
     Eigen::Vector2d t = transformation.block<2, 1>(0, 2);
-
-    // std::transform(src.begin(), src.end(), std::back_inserter(transformed_points), [&](Eigen::Vector2d &point) {
-    //     return R * point + t;
-    // });
     for (size_t i = 0; i < src.size(); i++)
     {
         transformed_points.push_back(R * src[i] + t);
