@@ -111,10 +111,10 @@ int main()
 
         int num_scans = laser_data.size();
         // std::cout<<"Data loaded, available processing time "<<(num_scans*0.1)/60<<" minutes"<<std::endl;
-
+        std::cout<<"total scans: "<<num_scans<<std::endl;
         // int iters = num_scans - 1;
-        int iters = 10;        // Number of Scans to process
-        double pixel_size = 0.1; 
+        int iters = 1000;        // Number of Scans to process
+        double pixel_size = 0.08; 
 
         dataset::LaserScanDataset::Transformation T;
         dataset::LaserScanDataset::PointCloud src;

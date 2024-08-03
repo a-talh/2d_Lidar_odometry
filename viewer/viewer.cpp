@@ -14,7 +14,7 @@ namespace
     Eigen::Vector2d compute_mean(const std::vector<Eigen::Vector2d> &vec)
     {
         Eigen::Vector2d zero = Eigen::Vector2d::Zero();
-        Eigen::Vector2d mean = std::accumulate(vec.begin(), vec.end(), zero );
+        Eigen::Vector2d mean = std::accumulate(vec.begin(), vec.end(), zero);
         return mean / vec.size();
     }
 
@@ -37,7 +37,6 @@ namespace
 
     double error(const std::vector<Eigen::Vector2d> &src, const std::vector<Eigen::Vector2d> &target, const Eigen::Matrix3d &transformation)
     {
-        // std::vector<Eigen::Vector2d> transformed_points;
         double error = 0.0;
         Eigen::Matrix2d R = transformation.block<2, 2>(0, 0);
         Eigen::Vector2d t = transformation.block<2, 1>(0, 2);
@@ -46,10 +45,7 @@ namespace
         {
             error += (target[i] - (R * src[i] + t)).squaredNorm();
         }
-        // for (size_t i = 0; i < src.size(); i++)
-        // {
-        //     error += (target[i] - src[i]).squaredNorm();
-        // }
+
         return error;
     }
 
@@ -57,21 +53,26 @@ namespace
     {
         std::vector<Pixel> neighbour_pixels;
         neighbour_pixels.reserve(9);
-        for (int x = p.i - pixels; x < p.i + pixels+1; x++)
-            for (int y = p.j - pixels; y < p.j + pixels+1; y++)
+        for (int x = p.i - pixels; x < p.i + pixels + 1; x++)
+            for (int y = p.j - pixels; y < p.j + pixels + 1; y++)
                 neighbour_pixels.emplace_back(x, y);
         return neighbour_pixels;
     }
 
-    std::vector<Pixel> GetAdjacentPixels(const Pixel &p, int adjacent_voxels = 1) {
-    std::vector<Pixel> pixel_neighborhood;
-    for (int i = p.i - adjacent_voxels; i < p.i + adjacent_voxels + 1 ; ++i) {
-        for (int j = p.j - adjacent_voxels; j < p.j + adjacent_voxels + 1 ; ++j) {
+    std::vector<Pixel> GetAdjacentPixels(const Pixel &p, int adjacent_voxels = 1)
+    {
+        std::vector<Pixel> pixel_neighborhood;
+        pixel_neighborhood.reserve(9*5);
+        for (int i = p.i - adjacent_voxels; i < p.i + adjacent_voxels + 1; ++i)
+        {
+            for (int j = p.j - adjacent_voxels; j < p.j + adjacent_voxels + 1; ++j)
+            {
                 pixel_neighborhood.emplace_back(i, j);
+            }
         }
+        pixel_neighborhood.shrink_to_fit();
+        return pixel_neighborhood;
     }
-    return pixel_neighborhood;
-}
 
     std::vector<Eigen::Vector2d> pixel_points(std::vector<Pixel> &pixels, const std::unordered_map<Pixel, std::vector<Eigen::Vector2d>> &target_grid)
     {
@@ -136,7 +137,7 @@ Eigen::Matrix3d icp_known_correspondence(std::vector<Eigen::Vector2d> &src, cons
 }
 
 std::unordered_map<Pixel, std::vector<Eigen::Vector2d>> grid_map(const std::vector<Eigen::Vector2d> &vec, double pixel_size)
-{   
+{
     std::unordered_map<Pixel, std::vector<Eigen::Vector2d>> grid;
 
     for (const auto &point : vec)
@@ -144,7 +145,7 @@ std::unordered_map<Pixel, std::vector<Eigen::Vector2d>> grid_map(const std::vect
         const Pixel p(point, pixel_size);
         grid[p].push_back(point);
     }
-    
+
     return grid;
 }
 
@@ -158,7 +159,7 @@ nearest_neighbours(const std::vector<Eigen::Vector2d> &src, const std::unordered
     for (const auto &point : src)
     {
         const Pixel p(point, pixel_size);
-        std::vector<Pixel> neighbour_px = neighbour_pixels(p,1);
+        std::vector<Pixel> neighbour_px = neighbour_pixels(p, 1);
         std::vector<Eigen::Vector2d> points = pixel_points(neighbour_px, target_grid);
 
         if (points.empty())
@@ -215,25 +216,25 @@ Eigen::Matrix3d icp_unknown_correspondence(const std::vector<Eigen::Vector2d> &s
         // std::tuple<std::vector<Eigen::Vector2d>, std::vector<Eigen::Vector2d>> nn = findNearestNeighbours(src, target_grid, pixel_size);
         s_correspondences = std::get<0>(nn);
         t_correspondences = std::get<1>(nn);
-       
 
         // Perform ICP with known correspondences
         t = icp_known_correspondence(s_correspondences, t_correspondences);
-        
+
         // Save the transformation
         // T.emplace_back(t);
         if (iter == 1)
         {
             T = t;
         }
-        else {
+        else
+        {
             T = save_transformation(T, t);
         }
         // T = save_transformation(T, t);
 
         // Apply the transformation
         src = apply_transformation(t, src);
-        
+
         // Compute the error
         double err = INFINITY;
         err = error(src, target, t);
