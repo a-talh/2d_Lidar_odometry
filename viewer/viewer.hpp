@@ -52,6 +52,8 @@ nearest_neighbours(const std::vector<Eigen::Vector2d> &src, const std::unordered
 
 Eigen::Matrix3d icp_unknown_correspondence(const std::vector<Eigen::Vector2d> &src, const std::vector<Eigen::Vector2d> &target, const double &pixel_size);
 
+void icp_unknown_correspondences( std::vector<Eigen::Vector2d> &src, const std::vector<Eigen::Vector2d> &target, const double &pixel_size);
+
 std::vector<Eigen::Vector2d> apply_transformation(const Eigen::Matrix3d &transformation, const std::vector<Eigen::Vector2d> &src);
 
 std::vector<Eigen::Vector2d> concat_pointclouds(std::vector<Eigen::Vector2d> &first, const std::vector<Eigen::Vector2d> &second);

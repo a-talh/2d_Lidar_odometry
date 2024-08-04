@@ -8,7 +8,7 @@
 
 int main()
 {
-    int choice = 2; // choose the pointcloud to be used 0 = test_pc, 1 = Lidar data, 2 = Lidar data different approach
+    int choice = 3; // choose the pointcloud to be used 0 = test_pc, 1 = Lidar data, 2 = Lidar data different approach
 
     if (choice == 0){
         const std::string filename1 = "data/src.ply";
@@ -144,7 +144,46 @@ int main()
         viewCloud(src);
     }
 
-    else if (choice != 0 && choice != 1 && choice != 2){
+    if (choice == 3){
+        std::string data_root = "data/";
+        dataset::LaserScanDataset laser_data(data_root);
+
+        int num_scans = laser_data.size();
+        // std::cout<<"Data loaded, available processing time "<<(num_scans*0.1)/60<<" minutes"<<std::endl;
+        std::cout<<"total scans: "<<num_scans<<std::endl;
+        int iters = num_scans - 1;
+        // int iters = 2000;        // Number of Scans to process
+        double pixel_size = 0.08; 
+
+        dataset::LaserScanDataset::Transformation T;
+        dataset::LaserScanDataset::PointCloud src;
+        dataset::LaserScanDataset::PointCloud target;
+        int j = 0;
+ 
+        std::cout<<"Applying ICP & Transformations \n________________________ "<<std::endl;
+        std::cout<<"Progress \n";
+        // Get the starting timepoint
+        auto start = std::chrono::high_resolution_clock::now();     // Time point before the execution of the code
+        src = laser_data[0];
+        for (int i = 1; i <= iters; i++)
+        {   
+            target = laser_data[i];
+            icp_unknown_correspondences(src, target, pixel_size);
+            src = concat_pointclouds(src, target);
+            src = downsample(src, 0.1, 1);
+            target.clear();
+            
+            j = 100 * (i) / iters;
+            std::cout<<"\r "<<j<<" %"<<std::flush;
+        }
+        auto end = std::chrono::high_resolution_clock::now();       // Time point after the execution of the code
+        auto duration = std::chrono::duration_cast<std::chrono::seconds>(end - start);
+        std::cout << "Execution time: " << duration.count() << " seconds" << std::endl; // Time taken for the execution of the code
+        std::cout<<"\nNumber of points in the registered point cloud: "<<src.size()<<std::endl;
+        viewCloud(src);
+    }
+
+    else if (choice != 0 && choice != 1 && choice != 2 && choice != 3){
         std::cout<<"Invalid choice"<<std::endl;
     }
     

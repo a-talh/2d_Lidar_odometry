@@ -49,6 +49,18 @@ namespace
         return error;
     }
 
+    double errorTransform(std::vector<Eigen::Vector2d> &src, const std::vector<Eigen::Vector2d> &target, const Eigen::Matrix3d &transformation)
+    {
+        double error = 0.0;
+        src = apply_transformation(transformation, src);
+        for (size_t i = 0; i < src.size(); i++)
+        {
+            error += (target[i] - src[i]).squaredNorm();
+        }
+
+        return error;
+    }
+
     std::vector<Pixel> neighbour_pixels(const Pixel &p, const int pixels = 1)
     {
         std::vector<Pixel> neighbour_pixels;
@@ -239,6 +251,47 @@ Eigen::Matrix3d icp_unknown_correspondence(const std::vector<Eigen::Vector2d> &s
         if (iter == max_iterations || err == old_err)
         {
             return T;
+        }
+
+        old_err = err;
+        s_correspondences.clear();
+        t_correspondences.clear();
+    }
+}
+
+void icp_unknown_correspondences( std::vector<Eigen::Vector2d> &src, const std::vector<Eigen::Vector2d> &target, const double &pixel_size)
+{
+    int max_iterations = 16;
+    int iter = 0;
+    double old_err = INFINITY;
+
+    Eigen::Matrix3d t = Eigen::Matrix3d::Identity();
+    std::vector<Eigen::Vector2d> s_correspondences;
+    std::vector<Eigen::Vector2d> t_correspondences;
+
+    std::unordered_map<Pixel, std::vector<Eigen::Vector2d>> target_grid = grid_map(target, pixel_size);
+    while (true)
+    {
+        iter++;
+        // Find nearest neighbors
+        std::tuple<std::vector<Eigen::Vector2d>, std::vector<Eigen::Vector2d>> nn = nearest_neighbours(src, target_grid, pixel_size);
+        s_correspondences = std::get<0>(nn);
+        t_correspondences = std::get<1>(nn);
+
+        // Perform ICP with known correspondences
+        t = icp_known_correspondence(s_correspondences, t_correspondences);
+
+        // Apply the transformation
+        // src = apply_transformation(t, src);
+
+        // Compute the error
+        double err = INFINITY;
+        err = errorTransform(src, target, t);
+        // std::cout<<"Error: "<<err<<std::endl;
+
+        if (iter == max_iterations || err == old_err)
+        {
+            return void();
         }
 
         old_err = err;
