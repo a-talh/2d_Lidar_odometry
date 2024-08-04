@@ -59,7 +59,7 @@ int main()
 
         // int iters = num_scans - 1;
         int iters = 30;        // Number of iterations to run ICP
-        double pixel_size = 0.5; 
+        double pixel_size = 0.08; 
 
         std::vector<dataset::LaserScanDataset::Transformation> T;
         dataset::LaserScanDataset::PointCloud src;
@@ -77,7 +77,7 @@ int main()
             j = 100 * (i+1) / iters;
             std::cout<<"\r "<<j<<" %"<<std::flush;
         }
-
+        j = 0;
         std::cout<<"Applying Transformations \n============== "<<std::endl;
         std::cout<<"Progress \n";
         pixel_size = 0.1;
@@ -85,9 +85,7 @@ int main()
         {   if (i == 0){
             src = apply_transformation(T[i], laser_data[i]);
             src = concat_pointclouds(src, laser_data[i+1]);
-            src = downSampleMean(src, pixel_size);
-            laser_data.SetRegisteredPointCloud(src);
-            src.clear();
+            src = downsample(src, pixel_size, 1);
             }
             if (i > 0){
             src = laser_data.GetRegisteredPointCloud();
@@ -112,8 +110,8 @@ int main()
         int num_scans = laser_data.size();
         // std::cout<<"Data loaded, available processing time "<<(num_scans*0.1)/60<<" minutes"<<std::endl;
         std::cout<<"total scans: "<<num_scans<<std::endl;
-        // int iters = num_scans - 1;
-        int iters = 1000;        // Number of Scans to process
+        int iters = num_scans - 1;
+        // int iters = 2000;        // Number of Scans to process
         double pixel_size = 0.08; 
 
         dataset::LaserScanDataset::Transformation T;

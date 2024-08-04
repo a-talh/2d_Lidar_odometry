@@ -191,11 +191,10 @@ nearest_neighbours(const std::vector<Eigen::Vector2d> &src, const std::unordered
     return std::make_tuple(s_correspondences, t_correspondences);
 }
 
-// std::vector<Eigen::Matrix3d> icp_unknown_correspondence(const std::vector<Eigen::Vector2d> &src_, const std::vector<Eigen::Vector2d> &target, const double &pixel_size)
 Eigen::Matrix3d icp_unknown_correspondence(const std::vector<Eigen::Vector2d> &src_, const std::vector<Eigen::Vector2d> &target, const double &pixel_size)
 {
 
-    int max_iterations = 50;
+    int max_iterations = 16;
     int iter = 0;
     double old_err = INFINITY;
 
@@ -213,7 +212,6 @@ Eigen::Matrix3d icp_unknown_correspondence(const std::vector<Eigen::Vector2d> &s
         iter++;
         // Find nearest neighbors
         std::tuple<std::vector<Eigen::Vector2d>, std::vector<Eigen::Vector2d>> nn = nearest_neighbours(src, target_grid, pixel_size);
-        // std::tuple<std::vector<Eigen::Vector2d>, std::vector<Eigen::Vector2d>> nn = findNearestNeighbours(src, target_grid, pixel_size);
         s_correspondences = std::get<0>(nn);
         t_correspondences = std::get<1>(nn);
 
@@ -221,7 +219,6 @@ Eigen::Matrix3d icp_unknown_correspondence(const std::vector<Eigen::Vector2d> &s
         t = icp_known_correspondence(s_correspondences, t_correspondences);
 
         // Save the transformation
-        // T.emplace_back(t);
         if (iter == 1)
         {
             T = t;
@@ -230,7 +227,6 @@ Eigen::Matrix3d icp_unknown_correspondence(const std::vector<Eigen::Vector2d> &s
         {
             T = save_transformation(T, t);
         }
-        // T = save_transformation(T, t);
 
         // Apply the transformation
         src = apply_transformation(t, src);
@@ -266,9 +262,12 @@ std::vector<Eigen::Vector2d> apply_transformation(const Eigen::Matrix3d &transfo
 
 std::vector<Eigen::Vector2d> concat_pointclouds(std::vector<Eigen::Vector2d> &first, const std::vector<Eigen::Vector2d> &second)
 {
-    std::vector<Eigen::Vector2d> result = first;
-    result.insert(result.end(), second.begin(), second.end());
-    return result;
+    // std::vector<Eigen::Vector2d> result = first;
+    // result.reserve(result.size() + second.size());
+    // result.insert(result.end(), second.begin(), second.end());
+
+    first.insert(first.end(), second.begin(), second.end());
+    return first;
 }
 
 std::vector<Eigen::Vector2d> downsample(const std::vector<Eigen::Vector2d> &vec, const double &pixel_size, const int &n_points)
@@ -291,7 +290,7 @@ std::vector<Eigen::Vector2d> downsample(const std::vector<Eigen::Vector2d> &vec,
             filtered_points.emplace_back(point);
         }
     }
-
+    filtered_points.shrink_to_fit();
     return filtered_points;
 }
 
