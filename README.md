@@ -12,9 +12,10 @@ The approach to do this is using iterative closest point algorithm (ICP) to regi
 
 ## Installation
 To run the program, the only external library is open 3d. It has to be extracted in the same directory as these other files. Cmake can be used to build the system and get executables. the most basic commands needed to perform the task are below.
-* cmake -Bbuild 
-* cmake --build build 
-* ./build/app/main     <- to execute the built executable
+* cmake -Bbuild
+* cmake --build build
+* ./build/app/main
+Note: The last command is to execute the built executables.
 
 ## Acknowledgements
 
