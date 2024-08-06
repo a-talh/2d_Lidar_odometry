@@ -59,26 +59,4 @@ LaserScanDataset::PointCloud LaserScanDataset::operator[](int idx) const {
   return ReadLaserScan(laser_scan_files_[idx]);
 }
 
-void LaserScanDataset::SetRegisteredPointCloud(const LaserScanDataset::PointCloud &pointcloud) {
-  registered_pointcloud_.clear();
-  registered_pointcloud_.reserve(7052531);
-  registered_pointcloud_ = pointcloud;
-}
-
-void LaserScanDataset::AddRegisteredPointCloud(const LaserScanDataset::PointCloud &pointcloud) {
-  registered_pointcloud_.insert(registered_pointcloud_.end(), pointcloud.begin(), pointcloud.end());
-}
-
-LaserScanDataset::PointCloud LaserScanDataset::GetRegisteredPointCloud() const{ 
-  return registered_pointcloud_; 
-  }
-
-void LaserScanDataset::SetTransformation(Eigen::Matrix3d &transformation) {
-  T_.push_back(transformation);
-}
-
-Eigen::Matrix3d LaserScanDataset::GetTransformation(int idx) const {
-  return T_[idx];
-}
-
 } // namespace dataset
