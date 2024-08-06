@@ -148,16 +148,14 @@ Eigen::Matrix3d icp_known_correspondence(std::vector<Eigen::Vector2d> &src, cons
     return T;
 }
 
-std::unordered_map<Pixel, std::vector<Eigen::Vector2d>> grid_map(const std::vector<Eigen::Vector2d> &vec, double pixel_size)
+std::unordered_map<Pixel, std::vector<Eigen::Vector2d>> grid_map(const std::vector<Eigen::Vector2d> &vec,const double &pixel_size)
 {
     std::unordered_map<Pixel, std::vector<Eigen::Vector2d>> grid;
-
     for (const auto &point : vec)
     {
         const Pixel p(point, pixel_size);
         grid[p].push_back(point);
     }
-
     return grid;
 }
 
@@ -300,25 +298,18 @@ void icp_unknown_correspondences( std::vector<Eigen::Vector2d> &src, const std::
     }
 }
 
-std::vector<Eigen::Vector2d> apply_transformation(const Eigen::Matrix3d &transformation, const std::vector<Eigen::Vector2d> &src)
+std::vector<Eigen::Vector2d> apply_transformation(const Eigen::Matrix3d &transformation, std::vector<Eigen::Vector2d> &src)
 {
-    std::vector<Eigen::Vector2d> transformed_points;
-    transformed_points.reserve(src.size());
     Eigen::Matrix2d R = transformation.block<2, 2>(0, 0);
     Eigen::Vector2d t = transformation.block<2, 1>(0, 2);
-    for (size_t i = 0; i < src.size(); i++)
-    {
-        transformed_points.push_back(R * src[i] + t);
-    }
-    return transformed_points;
+    
+    std::transform(src.cbegin(), src.cend(), src.begin(), [&R, &t](const auto &p)
+                   { return R * p + t; });
+    return src;
 }
 
 std::vector<Eigen::Vector2d> concat_pointclouds(std::vector<Eigen::Vector2d> &first, const std::vector<Eigen::Vector2d> &second)
 {
-    // std::vector<Eigen::Vector2d> result = first;
-    // result.reserve(result.size() + second.size());
-    // result.insert(result.end(), second.begin(), second.end());
-
     first.insert(first.end(), second.begin(), second.end());
     return first;
 }
