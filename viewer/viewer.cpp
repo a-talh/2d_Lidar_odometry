@@ -35,15 +35,27 @@ namespace
         return transformation * old_transformation;
     }
 
-    double error(const std::vector<Eigen::Vector2d> &src, const std::vector<Eigen::Vector2d> &target, const Eigen::Matrix3d &transformation)
+    // double error(const std::vector<Eigen::Vector2d> &src, const std::vector<Eigen::Vector2d> &target, const Eigen::Matrix3d &transformation)
+    // {
+    //     double error = 0.0;
+    //     Eigen::Matrix2d R = transformation.block<2, 2>(0, 0);
+    //     Eigen::Vector2d t = transformation.block<2, 1>(0, 2);
+
+    //     for (size_t i = 0; i < src.size(); i++)
+    //     {
+    //         error += (target[i] - (R * src[i] + t)).squaredNorm();
+    //     }
+
+    //     return error;
+    // }
+
+    double error(const std::vector<Eigen::Vector2d> &src, const std::vector<Eigen::Vector2d> &target)
     {
         double error = 0.0;
-        Eigen::Matrix2d R = transformation.block<2, 2>(0, 0);
-        Eigen::Vector2d t = transformation.block<2, 1>(0, 2);
 
         for (size_t i = 0; i < src.size(); i++)
         {
-            error += (target[i] - (R * src[i] + t)).squaredNorm();
+            error += (target[i] - (src[i])).squaredNorm();
         }
 
         return error;
@@ -71,20 +83,6 @@ namespace
         return neighbour_pixels;
     }
 
-    std::vector<Pixel> GetAdjacentPixels(const Pixel &p, int adjacent_voxels = 1)
-    {
-        std::vector<Pixel> pixel_neighborhood;
-        pixel_neighborhood.reserve(9*5);
-        for (int i = p.i - adjacent_voxels; i < p.i + adjacent_voxels + 1; ++i)
-        {
-            for (int j = p.j - adjacent_voxels; j < p.j + adjacent_voxels + 1; ++j)
-            {
-                pixel_neighborhood.emplace_back(i, j);
-            }
-        }
-        pixel_neighborhood.shrink_to_fit();
-        return pixel_neighborhood;
-    }
 
     std::vector<Eigen::Vector2d> pixel_points(std::vector<Pixel> &pixels, const std::unordered_map<Pixel, std::vector<Eigen::Vector2d>> &target_grid)
     {
@@ -243,7 +241,7 @@ Eigen::Matrix3d icp_unknown_correspondence(const std::vector<Eigen::Vector2d> &s
 
         // Compute the error
         double err = INFINITY;
-        err = error(src, target, t);
+        err = error(src, target);
         // std::cout<<"Error: "<<err<<std::endl;
 
         if (iter == max_iterations || err == old_err)
@@ -264,8 +262,8 @@ void icp_unknown_correspondences( std::vector<Eigen::Vector2d> &src, const std::
     double old_err = INFINITY;
 
     Eigen::Matrix3d t = Eigen::Matrix3d::Identity();
-    std::vector<Eigen::Vector2d> s_correspondences;
-    std::vector<Eigen::Vector2d> t_correspondences;
+    // std::vector<Eigen::Vector2d> s_correspondences;
+    // std::vector<Eigen::Vector2d> t_correspondences;
 
     std::unordered_map<Pixel, std::vector<Eigen::Vector2d>> target_grid = grid_map(target, pixel_size);
     while (true)
@@ -273,18 +271,18 @@ void icp_unknown_correspondences( std::vector<Eigen::Vector2d> &src, const std::
         iter++;
         // Find nearest neighbors
         std::tuple<std::vector<Eigen::Vector2d>, std::vector<Eigen::Vector2d>> nn = nearest_neighbours(src, target_grid, pixel_size);
-        s_correspondences = std::get<0>(nn);
-        t_correspondences = std::get<1>(nn);
+        auto &s_correspondences = std::get<0>(nn);
+        auto &t_correspondences = std::get<1>(nn);
 
         // Perform ICP with known correspondences
         t = icp_known_correspondence(s_correspondences, t_correspondences);
 
         // Apply the transformation
-        // src = apply_transformation(t, src);
+        src = apply_transformation(t, src);
 
         // Compute the error
         double err = INFINITY;
-        err = errorTransform(src, target, t);
+        err = error(src, target);
         // std::cout<<"Error: "<<err<<std::endl;
 
         if (iter == max_iterations || err == old_err)

@@ -170,7 +170,7 @@ int main()
             target = laser_data[i];
             icp_unknown_correspondences(src, target, pixel_size);
             src = concat_pointclouds(src, target);
-            src = downsample(src, 0.1, 1);
+            src = downsample(src, 0.12, 1);
             target.clear();
             
             j = 100 * (i) / iters;
@@ -178,8 +178,8 @@ int main()
         }
         auto end = std::chrono::high_resolution_clock::now();       // Time point after the execution of the code
         auto duration = std::chrono::duration_cast<std::chrono::seconds>(end - start);
-        std::cout << "Execution time: " << duration.count() << " seconds" << std::endl; // Time taken for the execution of the code
-        std::cout<<"\nNumber of points in the registered point cloud: "<<src.size()<<std::endl;
+        std::cout << "\nExecution time: " << duration.count() << " seconds" << std::endl; // Time taken for the execution of the code
+        std::cout<<"Number of points in the registered point cloud: "<<src.size()<<std::endl;
         viewCloud(src);
     }
 
