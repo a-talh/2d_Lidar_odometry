@@ -1,15 +1,20 @@
-# 2D Lidar odometry in the Real-World 
+## 2D Lidar odometry in the Real-World
+### Project description
 
 This project implements Iterative closest point algorithm to register consecutive scans taken from 2D-Lidar scanner mounted on a robotic vehicle
+This project is aimed to register multiple scans from a 2D-Lidar scanner mounted on a mobile robot vehicle. The scanner, at each instance, takes a full scan of it's surrounding as shown in the image below.
+![Single scan](/results/single_scan.png)
+### Details
 
-## Details
-Multiple scans are taken using a 2D- Lidar scanner. First two scans are shown in image below. The task is to register all the scans and generate a 2D map of environment. 
-![Single scan](/results/scan.png)
-The final registered scans look as shown in image below. 
-![Registered scans](/results/result.png)
+The approach to do this is using iterative closest point algorithm (ICP) to register two consecutive points with eachother and iterate over all scans to get them registered into a single point cloud and get final map of the environment that has been traversed by the robot. The ICP algorithm implemented in this code is from the lecture slides of MSR-II course from Geodetic Engineering at Uni Bonn. The final result looks like shown below. 
+![Registered scans](/results/registered_scans.png)
+
 
 ## Installation
-Further details will follow.
+To run the program, the only external library is open 3d. It has to be extracted in the same directory as these other files. Cmake can be used to build the system and get executables. the most basic commands needed to perform the task are below.
+* cmake -Bbuild 
+* cmake --build build 
+* ./build/app/main     <- to execute the built executable
 
 ## Acknowledgements
 
