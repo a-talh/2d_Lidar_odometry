@@ -50,8 +50,6 @@ std::unordered_map<Pixel, std::vector<Eigen::Vector2d>> grid_map(const std::vect
 std::tuple<std::vector<Eigen::Vector2d>, std::vector<Eigen::Vector2d>>
 nearest_neighbours(const std::vector<Eigen::Vector2d> &src, const std::unordered_map<Pixel, std::vector<Eigen::Vector2d>> &target_grid, const double &pixel_size);
 
-Eigen::Matrix3d icp_unknown_correspondence(const std::vector<Eigen::Vector2d> &src, const std::vector<Eigen::Vector2d> &target, const double &pixel_size);
-
 void icp_unknown_correspondences( std::vector<Eigen::Vector2d> &src, const std::vector<Eigen::Vector2d> &target, const double &pixel_size);
 
 std::vector<Eigen::Vector2d> apply_transformation(const Eigen::Matrix3d &transformation, std::vector<Eigen::Vector2d> &src);
@@ -60,4 +58,3 @@ std::vector<Eigen::Vector2d> concat_pointclouds(std::vector<Eigen::Vector2d> &fi
 
 std::vector<Eigen::Vector2d> downsample(const std::vector<Eigen::Vector2d> &vec, const double &pixel_size, const int &n_points);
 
-std::vector<Eigen::Vector2d> downSampleMean(const std::vector<Eigen::Vector2d> &vec, const double &pixel_size);

@@ -13,7 +13,7 @@ int main()
 
     // Print some basic information about the dataset
     int num_scans = laser_data.size();
-    std::cout << "Data Loaded \n________________________ " << std::endl;
+    std::cout << "Data Loaded \n--------------------" << std::endl;
     std::cout<<"Available processing time: "<<(num_scans*0.1)<<" seconds"<<std::endl; // 10 scans per second (10 Hz)
     std::cout << "Total number of scans: " << num_scans << std::endl;
 
@@ -24,7 +24,7 @@ int main()
     // hyperparameters (tuned for the dataset)
     double pixel_size = 0.08;
 
-    std::cout << "Applying ICP & Transformations \n________________________ " << std::endl;
+    std::cout << "Registering scans \n--------------------" << std::endl;
     std::cout << "Progress \n";
 
     // Get the starting timepoint
@@ -38,14 +38,14 @@ int main()
         target = laser_data[iter];
         icp_unknown_correspondences(src, target, pixel_size);
         src = concat_pointclouds(src, target);
-        src = downsample(src, 0.1, 1);   
+        src = downsample(src, 0.13, 1);   
         target.clear();
 
         progress = 100 * (iter) / scans;
         std::cout << "\r " << progress << " %" << std::flush;
     }
 
-    std::cout << "Processing finished \n________________________ " << std::endl;
+    std::cout << "Processing finished \n--------------------" << std::endl;
     auto end = std::chrono::high_resolution_clock::now(); // Time point after the execution of the code
     auto duration = std::chrono::duration_cast<std::chrono::seconds>(end - start);
     std::cout << "\nExecution time: " << duration.count() << " seconds" << std::endl; // Time taken for the execution of the code
