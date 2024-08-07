@@ -17,4 +17,3 @@ void viewCloud(const std::vector<Eigen::Vector2d> &pcd)
     open3d::visualization::DrawGeometries(
         {std::make_shared<open3d::geometry::PointCloud>(pointcloud)});
 }
-

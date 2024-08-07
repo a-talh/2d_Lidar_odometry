@@ -40,7 +40,7 @@ namespace std
 
 } // namespace std
 
-// Functions to manipulate point clouds
+// Functions to apply ICP algorithm on pointclouds
 namespace registration{
 /*
 This function takes two pointclouds and alligns them using the ICP algorithm.
