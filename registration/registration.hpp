@@ -38,18 +38,8 @@ namespace std
 
 
 // Functions to manipulate point clouds
-std::vector<Eigen::Vector3d> get_points(const open3d::geometry::PointCloud &pcd);
-
-Eigen::Matrix3d icp_known_correspondence(std::vector<Eigen::Vector2d> &src, const std::vector<Eigen::Vector2d> &target);
-
-std::unordered_map<Pixel, std::vector<Eigen::Vector2d>> grid_map(const std::vector<Eigen::Vector2d> &vec,const double &pixel_size);
-
-std::tuple<std::vector<Eigen::Vector2d>, std::vector<Eigen::Vector2d>>
-nearest_neighbours(const std::vector<Eigen::Vector2d> &src, const std::unordered_map<Pixel, std::vector<Eigen::Vector2d>> &target_grid, const double &pixel_size);
 
 void icp_unknown_correspondences( std::vector<Eigen::Vector2d> &src, const std::vector<Eigen::Vector2d> &target, const double &pixel_size);
-
-std::vector<Eigen::Vector2d> apply_transformation(const Eigen::Matrix3d &transformation, std::vector<Eigen::Vector2d> &src);
 
 std::vector<Eigen::Vector2d> concat_pointclouds(std::vector<Eigen::Vector2d> &first, const std::vector<Eigen::Vector2d> &second);
 
