@@ -24,7 +24,7 @@ Evaluation results will be uploaded later
 
 Firstly, clone this repository into any folder of your choice. To run the program, the external libraries needed are Eigen3d and Open3d. Eigen3d can be installed using following command in terminal.  
 
-* 'sudo apt install libeigen3-dev'  
+- `sudo apt install libeigen3-dev`  
 
 Once successfully installed, Open3d has to be downloaded from github and extracted to our project folder. Open3d can be downloaded from [Open3d github](https://github.com/isl-org/Open3D/releases). For ubuntu system, download this one _open3d-devel-linux-x86_64-cxx11-abi-0.18.0.tar.xz_ from the releases. Extract it to project directory and rename the folder as "open3d". After extracting, project directory looks like below. Note that you have to add data folder yourself as it isn't shared here. 
 
@@ -32,9 +32,9 @@ Once successfully installed, Open3d has to be downloaded from github and extract
 
 Cmake can be used to build the system and get executables. the most basic commands needed to perform the task are below.  
 
-* 'cmake -Bbuild'
-* 'cmake --build build'
-* './build/app/main'  
+- `cmake -Bbuild`
+- `cmake --build build`
+- `./build/app/main`  
 
 _Note: Once the build is successful using first two commands, third command can be used to execute our built binaries._
 
