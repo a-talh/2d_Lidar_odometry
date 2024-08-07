@@ -1,7 +1,18 @@
 
 # 2D Lidar odometry in the Real-World
 
-## Project description
+## Contents
+
+- [2D Lidar odometry in the Real-World](#2d-lidar-odometry-in-the-real-world)
+  - [Contents](#contents)
+    - [Project description](#project-description)
+    - [Implementation details](#implementation-details)
+    - [Execution time](#execution-time)
+    - [Installation](#installation)
+      - [Ubuntu](#ubuntu)
+    - [Acknowledgements](#acknowledgements)
+
+### Project description
 
 This project implements Iterative closest point algorithm to register consecutive scans taken from 2D-Lidar scanner mounted on a robotic vehicle
 This project is aimed to register multiple scans from a 2D-Lidar scanner mounted on a mobile robot vehicle. The scanner, at each instance, takes a full scan of it's surrounding as shown in image below.  
@@ -18,9 +29,9 @@ The approach to do this is using iterative closest point algorithm (ICP) to regi
 
 Evaluation results will be uploaded later
 
-## Installation  
+### Installation  
 
-### Ubuntu  
+#### Ubuntu  
 
 Firstly, clone this repository into any folder of your choice. To run the program, the external libraries needed are Eigen3d and Open3d. Eigen3d can be installed using following command in terminal.  
 
@@ -38,6 +49,6 @@ Cmake can be used to build the system and get executables. the most basic comman
 
 _Note: Once the build is successful using first two commands, third command can be used to execute our built binaries._
 
-## Acknowledgements  
+### Acknowledgements  
 
 Thanks to [contributors](https://github.com/a-talh/2d_Lidar_odometry/graphs/contributors) for the possibility of this project.
