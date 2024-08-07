@@ -14,17 +14,29 @@ The approach to do this is using iterative closest point algorithm (ICP) to regi
 
 ![Registered scans](/results/registered_scans.png)
 
-### Execution time
+### Execution time  
+
+Evaluation results will be uploaded later
 
 ## Installation  
 
-To run the program, the only external library is open 3d. It has to be extracted in the same directory as these other files. Cmake can be used to build the system and get executables. the most basic commands needed to perform the task are below.  
+### Ubuntu  
 
-* cmake -Bbuild
-* cmake --build build
-* ./build/app/main  
+Firstly, clone this repository into any folder of your choice. To run the program, the external libraries needed are Eigen3d and Open3d. Eigen3d can be installed using following command in terminal.  
 
-Note: The last command is to execute the built executables.
+* 'sudo apt install libeigen3-dev'  
+
+Once successfully installed, Open3d has to be downloaded from github and extracted to our project folder. Open3d can be downloaded from [Open3d github](https://github.com/isl-org/Open3D/releases). For ubuntu system, download this one _open3d-devel-linux-x86_64-cxx11-abi-0.18.0.tar.xz_ from the releases. Extract it to project directory and rename the folder as "open3d". After extracting, project directory looks like below. Note that you have to add data folder yourself as it isn't shared here. 
+
+![directory tree](/results/tree.png)  
+
+Cmake can be used to build the system and get executables. the most basic commands needed to perform the task are below.  
+
+* 'cmake -Bbuild'
+* 'cmake --build build'
+* './build/app/main'  
+
+_Note: Once the build is successful using first two commands, third command can be used to execute our built binaries._
 
 ## Acknowledgements  
 
