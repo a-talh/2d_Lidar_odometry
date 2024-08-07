@@ -34,7 +34,7 @@ Firstly, clone this repository into any folder of your choice. To run the progra
 
 - `sudo apt install libeigen3-dev`  
 
-Once successfully installed, Open3d has to be downloaded from github and extracted to our project folder. Open3d can be downloaded from [Open3d github](https://github.com/isl-org/Open3D/releases). For ubuntu system, download this one _open3d-devel-linux-x86_64-cxx11-abi-0.18.0.tar.xz_ from the releases. Extract it to project directory and rename the folder as "open3d". After extracting, project directory looks like below. Note that you have to add data folder yourself as it isn't shared here. 
+Once successfully installed, Open3d has to be downloaded from github and extracted to our project folder. Open3d can be downloaded from [Open3d github](https://github.com/isl-org/Open3D/releases). For ubuntu system, download this one _open3d-devel-linux-x86_64-cxx11-abi-0.18.0.tar.xz_ from the releases. Extract it to project directory and rename the folder as "open3d". After extracting, project directory looks like below. Note that you have to add data folder yourself as it isn't shared here.
 
 ![directory tree](/results/tree.png)  
 
@@ -48,4 +48,4 @@ _Note: Once the build is successful using first two commands, third command can 
 
 ## Acknowledgements  
 
-Thanks to [contributors](https://github.com/a-talh/2d_Lidar_odometry/graphs/contributors) for the possibility of this project.
+Thanks to [contributors](https://github.com/a-talh/2d_Lidar_odometry/graphs/contributors) for the possibility of this project.  
