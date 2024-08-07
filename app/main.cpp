@@ -20,8 +20,8 @@ int main()
     std::cout << "Total number of scans: " << num_scans << std::endl;
 
     // Number of scans to process
-    int scans = num_scans - 1;
-    // int scans = 2000;        // Number of Scans to process
+    // int scans = num_scans - 1;
+    int scans = 20;        // Number of Scans to process
 
     // hyperparameters (tuned for the dataset)
     double pixel_size = 0.08;
@@ -38,9 +38,9 @@ int main()
     for (int iter = 1; iter <= scans; iter++)
     {
         target = laser_data[iter];
-        icp_unknown_correspondences(src, target, pixel_size);
-        src = concat_pointclouds(src, target);
-        src = downsample(src, 0.13, 1);   
+        registration::icp_unknown_correspondences(src, target, pixel_size);
+        src = registration::concat_pointclouds(src, target);
+        src = registration::downsample(src, 0.13, 1);   
         target.clear();
 
         progress = 100 * (iter) / scans;

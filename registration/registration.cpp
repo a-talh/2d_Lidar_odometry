@@ -7,8 +7,9 @@
 #include <utility>
 #include <vector>
 
-namespace
-{
+// Helper functions for the ICP algorithm
+namespace 
+{   
     Eigen::Vector2d compute_mean(const std::vector<Eigen::Vector2d> &vec)
     {
         Eigen::Vector2d zero = Eigen::Vector2d::Zero();
@@ -151,6 +152,8 @@ namespace
 
 } // namespace
 
+namespace registration{
+
 void icp_unknown_correspondences(std::vector<Eigen::Vector2d> &src, const std::vector<Eigen::Vector2d> &target, const double &pixel_size)
 {
     int max_iterations = 16;
@@ -215,4 +218,6 @@ std::vector<Eigen::Vector2d> downsample(const std::vector<Eigen::Vector2d> &vec,
     }
     filtered_points.shrink_to_fit();
     return filtered_points;
+}
+
 }

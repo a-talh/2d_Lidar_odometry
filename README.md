@@ -4,7 +4,6 @@
 - [2D Lidar odometry in the Real-World](#2d-lidar-odometry-in-the-real-world)
   - [Project description](#project-description)
   - [Implementation details](#implementation-details)
-  - [Execution time](#execution-time)
   - [Installation](#installation)
     - [Ubuntu](#ubuntu)
   - [Acknowledgements](#acknowledgements)
@@ -21,10 +20,6 @@ This project is aimed to register multiple scans from a 2D-Lidar scanner mounted
 The approach to do this is using iterative closest point algorithm (ICP) to register two consecutive points with eachother and iterate over all scans to get them registered into a single point cloud and get final map of the environment that has been traversed by the robot. The ICP algorithm implemented in this code is from the lecture slides of MSR-II course from Geodetic Engineering at Uni Bonn. The final result looks like shown below. The goal is to register scans at minimum 10Hz.  
 
 ![Registered scans](/results/registered_scans.png)
-
-## Execution time  
-
-Evaluation results will be uploaded later
 
 ## Installation  
 
