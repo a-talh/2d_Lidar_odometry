@@ -2,6 +2,8 @@
 #include "dataloader.hpp"
 #include "viewer.hpp"
 #include "viewer.cpp"
+#include "registration.hpp"
+#include "registration.cpp"
 #include <chrono> // To monitor time
 #include <iomanip>
 
